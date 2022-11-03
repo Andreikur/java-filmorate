@@ -23,7 +23,7 @@ public class FilmController {
 
 
     //Добавляем фильм
-    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ResponseStatus
     @PostMapping(value = "/films")
     public Film addFilm(@Valid @RequestBody Film film){
         try {

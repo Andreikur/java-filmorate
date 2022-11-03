@@ -36,7 +36,7 @@ public class UserController {
     }
 
     //обновление пользователя
-    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ResponseStatus
     //@ResponseBody
     @PutMapping("/users")
     public User updateUser(@Valid @RequestBody User user){
