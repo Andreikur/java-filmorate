@@ -23,7 +23,6 @@ public class UserController {
     private final Map<Integer, User> allUsers = new HashMap<>();
 
     //Добавляем пользователя
-    @ResponseStatus
     @PostMapping(value = "/users")
     public User addUser(@Valid @RequestBody User user){
         if (user.getName().isBlank()){
@@ -33,11 +32,10 @@ public class UserController {
         user.setId(idUser);
         allUsers.put(idUser, user);
         log.info("Добавлен пользователь");
-        return user;
+        return allUsers.get(user.getId());
     }
 
     //обновление пользователя
-    @ResponseStatus
     @PutMapping("/users")
     public User updateUser(@Valid @RequestBody User user){
         try {
@@ -45,15 +43,13 @@ public class UserController {
                 allUsers.put(user.getId(), user);
                 log.info("Пользователь обновлен");
             }else {
-                HttpStatus.resolve(500);
-                user = allUsers.get(user.getId());
                 log.info("Пользователь не обновлен");
                 throw  new ValidationException("Пользователь с таким ID отсутствует");
             }
         } catch (ValidationException e){
             System.out.println(e.getMessage());
         }
-        return user;
+        return allUsers.get(user.getId());
     }
 
     //получить всех пользователей

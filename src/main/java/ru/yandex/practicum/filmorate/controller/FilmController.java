@@ -23,7 +23,6 @@ public class FilmController {
 
 
     //Добавляем фильм
-    @ResponseStatus
     @PostMapping(value = "/films")
     public Film addFilm(@Valid @RequestBody Film film){
         try {
@@ -33,7 +32,6 @@ public class FilmController {
                 allFilms.put(idFilm, film);
                 log.info("Фильм добавлен");
             } else {
-                HttpStatus.resolve(500);
                 log.info("Фильм не добавлен");
                 throw  new ValidationException("Дата релиза не может быть раньше 28 декабря 1895");
             }
@@ -44,7 +42,6 @@ public class FilmController {
     }
 
     //Обновление фильма
-    @ResponseStatus
     @PutMapping("/films")
     public Film updateFilm(@Valid @RequestBody Film film){
         try {
@@ -57,7 +54,6 @@ public class FilmController {
                 }
                 log.info("Фильм обновлен");
             } else{
-                HttpStatus.resolve(500);
                 log.info("Фильм не обновлен");
                 throw  new ValidationException("Дата релиза не может быть раньше 28 декабря 1895");
             }
