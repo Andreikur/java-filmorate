@@ -1,8 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import com.sun.net.httpserver.HttpExchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
@@ -32,18 +35,22 @@ public class UserController {
     }
 
     //обновление пользователя
+    @ResponseStatus(HttpStatus.ACCEPTED)
     @PutMapping("/users")
     public User updateUser(@Valid @RequestBody User user){
-        if (user.getName().isBlank()){
-            user.setName(user.getLogin());
+        try {
+            if(allUsers.containsKey(user.getId())){
+                allUsers.put(user.getId(), user);
+                log.info("Пользователь обновлен");
+            }else {
+                HttpStatus.resolve(500);
+                user = null;
+                log.info("Пользователь не обновлен");
+                throw  new ValidationException("Пользователь с таким ID отсутствует");
+            }
+        } catch (ValidationException e){
+            System.out.println(e.getMessage());
         }
-        if(allUsers.containsKey(user.getId())){
-            allUsers.put(user.getId(), user);
-        }else {
-            idUser++;
-            allUsers.put(idUser, user);
-        }
-        log.info("Пользователь обновлен");
         return user;
     }
 
