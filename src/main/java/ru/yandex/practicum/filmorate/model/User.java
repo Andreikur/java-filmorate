@@ -3,18 +3,18 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Data;
 import lombok.NonNull;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Past;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @Data
 public class User {
 
     private int id;
+
     @NonNull
-    @NotBlank
-    @Email
+    @NotEmpty
+    //@Pattern(regexp="[A-Za-z0-9._%-+]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}")
+    @Email(regexp = "[A-Za-z0-9._%-+]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}", message="Пожалуйста укажите дейтвительный адрес")
     private String email;
     @NonNull
     @NotBlank

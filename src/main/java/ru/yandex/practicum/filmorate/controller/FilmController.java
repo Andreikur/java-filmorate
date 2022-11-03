@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +23,7 @@ public class FilmController {
 
     //Добавляем фильм
     @PostMapping(value = "/films")
-    public Film addFilm(@RequestBody Film film){
+    public Film addFilm(@Valid @RequestBody Film film){
         try {
             if (film.getReleaseDate().isAfter(LocalDate.parse("1895-12-28"))) {
                 idFilm++;
@@ -41,7 +42,7 @@ public class FilmController {
 
     //Обновление фильма
     @PutMapping("/films")
-    public Film updateFilm(@RequestBody Film film){
+    public Film updateFilm(@Valid @RequestBody Film film){
         try {
             if (film.getReleaseDate().isAfter(LocalDate.parse("1895-12-28"))){
                 if(allFilms.containsKey(film.getId())){

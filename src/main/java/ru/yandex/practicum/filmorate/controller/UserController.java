@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +20,7 @@ public class UserController {
 
     //Добавляем пользователя
     @PostMapping(value = "/users")
-    public User addUser(@RequestBody User user){
+    public User addUser(@Valid @RequestBody User user){
         if (user.getName().isBlank()){
             user.setName(user.getLogin());
         }
@@ -32,7 +33,7 @@ public class UserController {
 
     //обновление пользователя
     @PutMapping("/users")
-    public User updateUser(@RequestBody User user){
+    public User updateUser(@Valid @RequestBody User user){
         if (user.getName().isBlank()){
             user.setName(user.getLogin());
         }
