@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -22,6 +23,7 @@ public class FilmController {
 
 
     //Добавляем фильм
+    @ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping(value = "/films")
     public Film addFilm(@Valid @RequestBody Film film){
         try {
@@ -31,6 +33,7 @@ public class FilmController {
                 allFilms.put(idFilm, film);
                 log.info("Фильм добавлен");
             } else {
+                HttpStatus.resolve(500);
                 log.info("Фильм не добавлен");
                 throw  new ValidationException("Дата релиза не может быть раньше 28 декабря 1895");
             }
