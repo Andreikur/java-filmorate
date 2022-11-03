@@ -23,6 +23,7 @@ public class FilmController {
 
 
     //Добавляем фильм
+    @ResponseStatus
     @PostMapping(value = "/films")
     public Film addFilm(@Valid @RequestBody Film film){
         try {
@@ -43,6 +44,7 @@ public class FilmController {
     }
 
     //Обновление фильма
+    @ResponseStatus
     @PutMapping("/films")
     public Film updateFilm(@Valid @RequestBody Film film){
         try {

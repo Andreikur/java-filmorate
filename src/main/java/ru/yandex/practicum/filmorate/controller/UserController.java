@@ -23,6 +23,7 @@ public class UserController {
     private final Map<Integer, User> allUsers = new HashMap<>();
 
     //Добавляем пользователя
+    @ResponseStatus
     @PostMapping(value = "/users")
     public User addUser(@Valid @RequestBody User user){
         if (user.getName().isBlank()){
@@ -36,6 +37,7 @@ public class UserController {
     }
 
     //обновление пользователя
+    @ResponseStatus
     @PutMapping("/users")
     public User updateUser(@Valid @RequestBody User user){
         try {
