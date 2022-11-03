@@ -20,6 +20,9 @@ public class UserController {
     //Добавляем пользователя
     @PostMapping(value = "/users")
     public User addUser(@RequestBody User user){
+        if (user.getName().isBlank()){
+            user.setName(user.getLogin());
+        }
         idUser++;
         user.setId(idUser);
         allUsers.put(idUser, user);
