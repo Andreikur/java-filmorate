@@ -5,8 +5,10 @@ import lombok.NonNull;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Data
 public class User {
@@ -22,4 +24,11 @@ public class User {
     private String name;
     @Past
     private LocalDate birthday;
+
+    public User( String email, String login, LocalDate birthday){
+        this.email = email;
+        this.login = login;
+        this.birthday = birthday;
+        this.name = login;
+    }
 }
