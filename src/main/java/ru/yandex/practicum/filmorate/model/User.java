@@ -31,4 +31,15 @@ public class User {
         this.birthday = birthday;
         this.name = login;
     }
+
+    public User( String email, String login, String name, LocalDate birthday){
+        this.email = email;
+        this.login = login;
+        this.birthday = birthday;
+        if (name.isBlank()){
+            this.name = login;
+        } else {
+            this.name = login;
+        }
+    }
 }
