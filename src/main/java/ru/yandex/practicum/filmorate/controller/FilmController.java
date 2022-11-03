@@ -23,7 +23,7 @@ public class FilmController {
 
 
     //Добавляем фильм
-    @ResponseStatus
+    //@ResponseStatus
     @PostMapping(value = "/films")
     public Film addFilm(@Valid @RequestBody Film film){
         try {
@@ -32,18 +32,20 @@ public class FilmController {
                 film.setId(idFilm);
                 allFilms.put(idFilm, film);
                 log.info("Фильм добавлен");
+                //HttpStatus.resolve(200);
             } else {
-                HttpStatus.resolve(500);
+                //HttpStatus.resolve(500);
                 log.info("Фильм не добавлен");
                 throw  new ValidationException("Дата релиза не может быть раньше 28 декабря 1895");
             }
         } catch (ValidationException e){
             System.out.println(e.getMessage());
         }
-        return film;
+        return allFilms.get(film.getId());
     }
 
     //Обновление фильма
+    //@ResponseStatus
     @PutMapping("/films")
     public Film updateFilm(@Valid @RequestBody Film film){
         try {
@@ -56,13 +58,14 @@ public class FilmController {
                 }
                 log.info("Фильм обновлен");
             } else{
+                //HttpStatus.resolve(500);
                 log.info("Фильм не обновлен");
                 throw  new ValidationException("Дата релиза не может быть раньше 28 декабря 1895");
             }
         } catch (ValidationException e){
             System.out.println(e.getMessage());
         }
-        return film;
+        return allFilms.get(film.getId());
     }
 
     //получить все фильмы
