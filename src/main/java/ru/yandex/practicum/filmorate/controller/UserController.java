@@ -36,7 +36,6 @@ public class UserController {
     }
 
     //обновление пользователя
-    @ResponseStatus(value = HttpStatus.ACCEPTED)
     @PutMapping("/users")
     public User updateUser(@Valid @RequestBody User user){
         try {
