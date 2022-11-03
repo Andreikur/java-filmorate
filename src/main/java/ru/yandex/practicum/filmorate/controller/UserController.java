@@ -33,6 +33,9 @@ public class UserController {
     //обновление пользователя
     @PutMapping("/users")
     public User updateUser(@RequestBody User user){
+        if (user.getName().isBlank()){
+            user.setName(user.getLogin());
+        }
         if(allUsers.containsKey(user.getId())){
             allUsers.put(user.getId(), user);
         }else {
