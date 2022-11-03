@@ -29,7 +29,7 @@ public class FilmController {
                 idFilm++;
                 film.setId(idFilm);
                 allFilms.put(idFilm, film);
-                log.info("Добавлен фильм");
+                log.info("Фильм добавлен");
             } else {
                 log.info("Фильм не добавлен");
                 throw  new ValidationException("Дата релиза не может быть раньше 28 декабря 1895");

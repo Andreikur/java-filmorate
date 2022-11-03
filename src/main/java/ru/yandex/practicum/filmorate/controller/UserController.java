@@ -35,7 +35,7 @@ public class UserController {
     }
 
     //обновление пользователя
-    @ResponseStatus(HttpStatus.ACCEPTED)
+    //@ResponseStatus(HttpStatus.ACCEPTED)
     @PutMapping("/users")
     public User updateUser(@Valid @RequestBody User user){
         try {
@@ -43,8 +43,8 @@ public class UserController {
                 allUsers.put(user.getId(), user);
                 log.info("Пользователь обновлен");
             }else {
-                HttpStatus.resolve(500);
-                user = null;
+                //HttpStatus.resolve(500);
+                user = allUsers.get(user.getId());
                 log.info("Пользователь не обновлен");
                 throw  new ValidationException("Пользователь с таким ID отсутствует");
             }
