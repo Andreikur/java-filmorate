@@ -20,7 +20,6 @@ public class FilmController {
     private int idFilm;
     private final Map<Integer, Film> allFilms = new HashMap<>();
 
-
     //Добавляем фильм
     @PostMapping(value = "/films")
     public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
@@ -60,6 +59,4 @@ public class FilmController {
         log.info("Получены все фильмы");
         return List.copyOf(allFilms.values());
     }
-
-
 }
