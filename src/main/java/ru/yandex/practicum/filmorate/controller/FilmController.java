@@ -49,8 +49,8 @@ public class FilmController {
                 if(allFilms.containsKey(film.getId())){
                     allFilms.put(film.getId(), film);
                 }else {
-                    idFilm++;
-                    allFilms.put(idFilm, film);
+                    log.info("Фильм не обновлен");
+                    throw  new ValidationException("Фмльм отсутствует в коллекции");
                 }
                 log.info("Фильм обновлен");
             } else{
