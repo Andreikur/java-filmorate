@@ -23,8 +23,7 @@ public class FilmController {
 
     //Добавляем фильм
     @PostMapping(value = "/films")
-    public Film addFilm(@Valid @RequestBody Film film){
-        try {
+    public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
             if (film.getReleaseDate().isAfter(LocalDate.parse("1895-12-28"))) {
                 idFilm++;
                 film.setId(idFilm);
@@ -34,9 +33,6 @@ public class FilmController {
                 log.info("Фильм не добавлен");
                 throw  new ValidationException("Дата релиза не может быть раньше 28 декабря 1895");
             }
-        } catch (ValidationException e){
-            System.out.println(e.getMessage());
-        }
         return allFilms.get(film.getId()) ;
     }
 
