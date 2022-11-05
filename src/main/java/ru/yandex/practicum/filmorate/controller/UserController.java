@@ -37,8 +37,7 @@ public class UserController {
 
     //обновление пользователя
     @PutMapping("/users")
-    public User updateUser(@Valid @RequestBody User user){
-        try {
+    public User updateUser(@Valid @RequestBody User user) throws ValidationException {
             if(allUsers.containsKey(user.getId())){
                 allUsers.put(user.getId(), user);
                 log.info("Пользователь обновлен");
@@ -46,9 +45,7 @@ public class UserController {
                 log.info("Пользователь не обновлен");
                 throw  new ValidationException("Пользователь с таким ID отсутствует");
             }
-        } catch (ValidationException e){
-            System.out.println(e.getMessage());
-        }
+
         return allUsers.get(user.getId());
     }
 
