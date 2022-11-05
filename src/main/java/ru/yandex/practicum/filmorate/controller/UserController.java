@@ -53,4 +53,8 @@ public class UserController {
         log.info("Все пользователи получены");
         return List.copyOf(allUsers.values());
     }
+
+    public List<User> getListAllUsers(){
+        return List.copyOf(allUsers.values()) ;
+    }
 }
