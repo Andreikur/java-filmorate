@@ -5,9 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.validations.Validations;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,33 +23,25 @@ public class FilmController {
     //Добавляем фильм
     @PostMapping(value = "/films")
     public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
-            if (film.getReleaseDate().isAfter(LocalDate.parse("1895-12-28"))) {
-                idFilm++;
+        Validations.validateFilm(film);
+        idFilm++;
                 film.setId(idFilm);
                 allFilms.put(idFilm, film);
                 log.info("Фильм добавлен");
-            } else {
-                log.info("Фильм не добавлен");
-                throw  new ValidationException("Дата релиза не может быть раньше 28 декабря 1895");
-            }
         return allFilms.get(film.getId()) ;
     }
 
     //Обновление фильма
     @PutMapping("/films")
     public Film updateFilm(@Valid @RequestBody Film film) throws ValidationException {
-            if (film.getReleaseDate().isAfter(LocalDate.parse("1895-12-28"))){
+        Validations.validateFilm(film);
                 if(allFilms.containsKey(film.getId())){
                     allFilms.put(film.getId(), film);
-                }else {
+                } else {
                     log.info("Фильм не обновлен");
                     throw  new ValidationException("Фмльм отсутствует в коллекции");
                 }
                 log.info("Фильм обновлен");
-            } else{
-                log.info("Фильм не обновлен");
-                throw  new ValidationException("Дата релиза не может быть раньше 28 декабря 1895");
-            }
         return allFilms.get(film.getId());
     }
 

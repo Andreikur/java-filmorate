@@ -19,4 +19,11 @@ public class User {
     private String name;
     @Past
     private LocalDate birthday;
+
+    public User(String login, String email, LocalDate birthday){
+        this.login = login;
+        this.email = email;
+        this.birthday = birthday;
+        this.name = login;
+    }
 }

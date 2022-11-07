@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.validations.Validations;
 
 import javax.validation.Valid;
 import java.util.HashMap;
@@ -22,10 +23,8 @@ public class UserController {
 
     //Добавляем пользователя
     @PostMapping(value = "/users")
-    public User addUser(@Valid @RequestBody User user){
-        if (user.getName().isBlank()){
-            user.setName(user.getLogin());
-        }
+    public User addUser(@Valid @RequestBody User user) throws ValidationException {
+        Validations.validateUser(user);
         idUser++;
         user.setId(idUser);
         allUsers.put(idUser, user);
@@ -36,6 +35,7 @@ public class UserController {
     //обновление пользователя
     @PutMapping("/users")
     public User updateUser(@Valid @RequestBody User user) throws ValidationException {
+        Validations.validateUser(user);
             if(allUsers.containsKey(user.getId())){
                 allUsers.put(user.getId(), user);
                 log.info("Пользователь обновлен");
