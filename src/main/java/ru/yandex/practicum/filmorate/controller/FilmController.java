@@ -16,7 +16,6 @@ import java.util.Map;
 public class FilmController {
 
     private static final Logger log = LoggerFactory.getLogger(FilmController.class);
-
     private int idFilm;
     private final Map<Integer, Film> allFilms = new HashMap<>();
 
