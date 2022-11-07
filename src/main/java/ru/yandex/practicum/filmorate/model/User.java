@@ -33,4 +33,6 @@ public class User {
         this.birthday = birthday;
         this.name = login;
     }
+    public User(){
+    }
 }
