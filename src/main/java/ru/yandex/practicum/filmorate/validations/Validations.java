@@ -12,7 +12,7 @@ public class Validations {
         if (user.getLogin().contains(" ")){
             throw  new ValidationException("Логин не может содержать пробелов");
         }
-        if (user.getName() == null || user.getName().isBlank()){
+        if (user.getName().isBlank()){
             user.setName(user.getLogin());
         }
     }
