@@ -5,7 +5,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 public class ValidationsUser {
 
-    public void validateUser(User user) throws ValidationException{
+    public static void validateUser(User user) throws ValidationException{
         if (user.getLogin().contains(" ")){
             throw  new ValidationException("Логин не может содержать пробелов");
         }
@@ -13,4 +13,5 @@ public class ValidationsUser {
             user.setName(user.getLogin());
         }
     }
+
 }
