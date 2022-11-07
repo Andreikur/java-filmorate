@@ -30,12 +30,8 @@ class FilmorateApplicationTests {
                 .releaseDate(LocalDate.parse("1995-12-28"))
                 .duration(100)
                 .build();
-        user = User.builder()
-                .login("Пользователь1")
-                .name("Имя 1")
-                .email("yandex@yandex.ru")
-                .birthday(LocalDate.parse("1980-11-11"))
-                .build();
+
+        user = new User("Пользователь1", "yandex@yandex.ru", LocalDate.parse("1980-11-11"));
     }
 
     @Test
