@@ -46,7 +46,7 @@ public class FilmController {
     }
 
     //получить все фильмы
-    @GetMapping("/films")
+    @GetMapping
     public List<Film> getAllFilms() {
         log.info("Получены все фильмы");
         return List.copyOf(allFilms.values());
