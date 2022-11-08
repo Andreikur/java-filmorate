@@ -5,9 +5,6 @@ import lombok.*;
 import javax.validation.constraints.*;
 import java.time.LocalDate;
 
-//Анотация @Builder нздесь не хочет работать, наверное из-за того что в ручную написаны конструкторы,
-//по другому не получилось из-за поля name = login, пробовал делать это присвоение делать в классе Validations,
-//но в этом случае переставало все работать.  )
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
