@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@RequestMapping(value = "/users")
 @RestController
 public class UserController {
 
@@ -21,7 +22,7 @@ public class UserController {
     private final Map<Integer, User> allUsers = new HashMap<>();
 
     //Добавляем пользователя
-    @PostMapping(value = "/users")
+    @PostMapping
     public User addUser(@Valid @RequestBody User user) throws ValidationException {
         Validations.validateUser(user);
         idUser++;
@@ -32,22 +33,22 @@ public class UserController {
     }
 
     //обновление пользователя
-    @PutMapping("/users")
+    @PutMapping
     public User updateUser(@Valid @RequestBody User user) throws ValidationException {
         Validations.validateUser(user);
-            if(allUsers.containsKey(user.getId())){
-                allUsers.put(user.getId(), user);
-                log.info("Пользователь обновлен");
-            }else {
-                log.info("Пользователь не обновлен");
-                throw  new ValidationException("Пользователь с таким ID отсутствует");
-            }
+        if (allUsers.containsKey(user.getId())) {
+            allUsers.put(user.getId(), user);
+            log.info("Пользователь обновлен");
+        } else {
+            log.info("Пользователь не обновлен");
+            throw new ValidationException("Пользователь с таким ID отсутствует");
+        }
         return allUsers.get(user.getId());
     }
 
     //получить всех пользователей
-    @GetMapping("/users")
-    public List<User> getAllUsers(){
+    @GetMapping
+    public List<User> getAllUsers() {
         log.info("Все пользователи получены");
         return List.copyOf(allUsers.values());
     }

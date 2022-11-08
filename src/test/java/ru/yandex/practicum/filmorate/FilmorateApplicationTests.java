@@ -14,14 +14,14 @@ import ru.yandex.practicum.filmorate.validations.Validations;
 import java.time.LocalDate;
 
 @SpringBootTest
-class FilmorateApplicationTests {
+public class FilmorateApplicationTests {
     Film film;
     User user;
     FilmController filmController;
     UserController userController;
 
     @BeforeEach
-    void initialValues(){
+    void initialValues() {
         filmController = new FilmController();
         userController = new UserController();
         film = Film.builder()
@@ -30,13 +30,16 @@ class FilmorateApplicationTests {
                 .releaseDate(LocalDate.parse("1995-12-28"))
                 .duration(100)
                 .build();
-
-        user = new User("Пользователь1", "yandex@yandex.ru", LocalDate.parse("1980-11-11"));
+        user = User.builder()
+                .login("Пользователь1")
+                .email("yandex@yandex.ru")
+                .birthday(LocalDate.parse("1980-11-11"))
+                .build();
     }
 
     @Test
-    void realeaseDateValidationTest(){
-        film.setReleaseDate(LocalDate.of(1600, 1,1));
+    void realeaseDateValidationTest() {
+        film.setReleaseDate(LocalDate.of(1600, 1, 1));
         Assertions.assertThrows(ValidationException.class, () -> Validations.validateFilm(film));
     }
 
@@ -53,7 +56,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    void loginWithSpacesValidationTest(){
+    void loginWithSpacesValidationTest() {
         user.setLogin("Пользователь 1");
         Assertions.assertThrows(ValidationException.class, () -> Validations.validateUser(user));
     }

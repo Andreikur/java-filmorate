@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@RequestMapping(value = "/films")
 @RestController
 public class FilmController {
 
@@ -20,33 +21,33 @@ public class FilmController {
     private final Map<Integer, Film> allFilms = new HashMap<>();
 
     //Добавляем фильм
-    @PostMapping(value = "/films")
+    @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
         Validations.validateFilm(film);
         idFilm++;
-                film.setId(idFilm);
-                allFilms.put(idFilm, film);
-                log.info("Фильм добавлен");
-        return allFilms.get(film.getId()) ;
+        film.setId(idFilm);
+        allFilms.put(idFilm, film);
+        log.info("Фильм добавлен");
+        return allFilms.get(film.getId());
     }
 
     //Обновление фильма
-    @PutMapping("/films")
+    @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) throws ValidationException {
         Validations.validateFilm(film);
-                if(allFilms.containsKey(film.getId())){
-                    allFilms.put(film.getId(), film);
-                } else {
-                    log.info("Фильм не обновлен");
-                    throw  new ValidationException("Фмльм отсутствует в коллекции");
-                }
-                log.info("Фильм обновлен");
+        if (allFilms.containsKey(film.getId())) {
+            allFilms.put(film.getId(), film);
+        } else {
+            log.info("Фильм не обновлен");
+            throw new ValidationException("Фмльм отсутствует в коллекции");
+        }
+        log.info("Фильм обновлен");
         return allFilms.get(film.getId());
     }
 
     //получить все фильмы
     @GetMapping("/films")
-    public List<Film> getAllFilms(){
+    public List<Film> getAllFilms() {
         log.info("Получены все фильмы");
         return List.copyOf(allFilms.values());
     }
