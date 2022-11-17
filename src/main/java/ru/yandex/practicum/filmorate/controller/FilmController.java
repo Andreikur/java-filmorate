@@ -1,54 +1,71 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.validations.Validations;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RequestMapping(value = "/films")
 @RestController
 public class FilmController {
 
-    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
-    private int idFilm;
-    private final Map<Integer, Film> allFilms = new HashMap<>();
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     //Добавляем фильм
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
-        Validations.validateFilm(film);
-        idFilm++;
-        film.setId(idFilm);
-        allFilms.put(idFilm, film);
-        log.info("Фильм добавлен");
-        return allFilms.get(film.getId());
+        return filmService.getInMemoryFilmStorage().addFilm(film);
     }
 
     //Обновление фильма
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) throws ValidationException {
-        Validations.validateFilm(film);
-        if (allFilms.containsKey(film.getId())) {
-            allFilms.put(film.getId(), film);
-        } else {
-            log.info("Фильм не обновлен");
-            throw new ValidationException("Фмльм отсутствует в коллекции");
-        }
-        log.info("Фильм обновлен");
-        return allFilms.get(film.getId());
+       return filmService.getInMemoryFilmStorage().updateFilm(film);
     }
 
     //получить все фильмы
     @GetMapping
     public List<Film> getAllFilms() {
-        log.info("Получены все фильмы");
-        return List.copyOf(allFilms.values());
+        return filmService.getInMemoryFilmStorage().getAllFilms();
     }
+
+    //Удаление фильма ДОРАБОТАТЬ
+    @DeleteMapping
+    public void removeFilm(){
+
+    }
+
+    //пользователь ставит лайк фильму
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable("id") String id, @PathVariable("userId") String userId){
+        int intId = Integer.parseInt(id);
+        int intUserId = Integer.parseInt(userId);
+        filmService.addLike(intId, intUserId);
+    }
+
+    //удаление лайка
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeLike(@PathVariable("id") String id, @PathVariable("userId") String userId){
+        int intId = Integer.parseInt(id);
+        int intUserId = Integer.parseInt(userId);
+        filmService.removeLike(intId, intUserId);
+    }
+
+    //возрат списка первых по количеству лайков N фильмов
+    @GetMapping(value = {"/popular?count={count}", "/popular"})
+    public Film[] getListOfPopularFilms(@PathVariable String id){
+        int intId = 10;
+        intId = Integer.parseInt(id);
+        return filmService.getListOfPopularFilms(intId);
+    }
+
 }
