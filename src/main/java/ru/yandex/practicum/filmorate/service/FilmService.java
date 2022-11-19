@@ -25,15 +25,15 @@ public class FilmService {
 
     //пользователь ставит лайк фильму
     public void addLike(int id, int userId) {
-        if (userId <= 0){
+        if (userId <= 0) {
             log.info("id пользователя не корректно");
             throw new UserNotFoundException(String.format(
                     "Пользователь с ID %s не найден", id));
-        } else if(inMemoryFilmStorage.getAllFilmMap().containsKey(id) || userId >= 0) {
+        } else if (inMemoryFilmStorage.getAllFilmMap().containsKey(id)) {
             Film film = inMemoryFilmStorage.getAllFilmMap().get(id);
             film.getListOfUsersWhoHaveLiked().add(userId);
             log.info("Фильму " + film.getName() + " поставлен лайк пользователем с ID " + userId);
-        } else{
+        } else {
             log.info("Фильм не получен");
             throw new FilmNotFoundException(String.format(
                     "Фильм с ID %s не найден или id пользователя не соответствут параметрам", id));
@@ -42,15 +42,15 @@ public class FilmService {
 
     //удаление лайка
     public void removeLike(int id, int userId) {
-        if (userId <= 0){
+        if (userId <= 0) {
             log.info("id пользователя не корректно");
             throw new UserNotFoundException(String.format(
                     "Пользователь с ID %s не найден", id));
-        } else if(inMemoryFilmStorage.getAllFilmMap().containsKey(id)) {
+        } else if (inMemoryFilmStorage.getAllFilmMap().containsKey(id)) {
             Film film = inMemoryFilmStorage.getAllFilmMap().get(id);
             film.getListOfUsersWhoHaveLiked().remove(userId);
             log.info("Фильму " + film.getName() + " поставлен лайк пользователем с ID " + userId);
-        } else{
+        } else {
             log.info("Фильм не получен");
             throw new FilmNotFoundException(String.format(
                     "Фильм с ID %s не найден или id пользователя не соответствут параметрам", id));
@@ -58,24 +58,17 @@ public class FilmService {
     }
 
     //возрат списка первых по количеству лайков N фильмов
-    //ДОРАБОТАТЬ!!!!!!!!!!!!!
     public List<Film> getListOfPopularFilms(int count) {
-
         List<Film> listFilms = new ArrayList<>();
-        for (Film film : inMemoryFilmStorage.getAllFilmMap().values()){
+        for (Film film : inMemoryFilmStorage.getAllFilmMap().values()) {
             listFilms.add(film);
         }
-
         if (listFilms.size() < count) {
             count = listFilms.size();
         }
-
         Collections.sort(listFilms, new FilmLikeComparator().reversed());
-
-        List<Film> subList = listFilms.subList(0, count);
-        return subList;
+        return listFilms.subList(0, count);
     }
-
 
     public InMemoryFilmStorage getInMemoryFilmStorage() {
         return inMemoryFilmStorage;

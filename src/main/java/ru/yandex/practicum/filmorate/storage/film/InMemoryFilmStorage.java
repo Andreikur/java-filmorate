@@ -42,12 +42,12 @@ public class InMemoryFilmStorage implements FilmStorage {
         return allFilms.get(film.getId());
     }
 
-    public List<Film> getAllFilms(){
+    public List<Film> getAllFilms() {
         log.info("Получены все фильмы");
         return List.copyOf(allFilms.values());
     }
 
-    public Map<Integer, Film> getAllFilmMap(){
+    public Map<Integer, Film> getAllFilmMap() {
         return allFilms;
     }
 
@@ -64,6 +64,16 @@ public class InMemoryFilmStorage implements FilmStorage {
         return allFilms.get(id);
     }
 
-    public void removeFilm() {
+    //Удаление фильма
+    public void removeFilm(int id) {
+        if (allFilms.containsKey(id)) {
+            allFilms.remove(id);
+            log.info("Фильм с ID = " + id + "удален");
+        } else {
+            log.info("Фильм не получен");
+            throw new FilmNotFoundException(String.format(
+                    "Фильм с ID %s не найден",
+                    id));
+        }
     }
 }

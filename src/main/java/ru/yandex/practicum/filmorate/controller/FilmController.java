@@ -29,7 +29,7 @@ public class FilmController {
     //Обновление фильма
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) throws ValidationException {
-       return filmService.getInMemoryFilmStorage().updateFilm(film);
+        return filmService.getInMemoryFilmStorage().updateFilm(film);
     }
 
     //получить все фильмы
@@ -40,47 +40,34 @@ public class FilmController {
 
     //получить фильм
     @GetMapping("/{id}")
-    public Film getFilm(@PathVariable("id") String id){
-        int intId = Integer.parseInt(id);
-        return filmService.getInMemoryFilmStorage().getFilm(intId);
+    public Film getFilm(@PathVariable("id") Integer id) {
+        return filmService.getInMemoryFilmStorage().getFilm(id);
     }
 
-    //Удаление фильма ДОРАБОТАТЬ
-    @DeleteMapping
-    public void removeFilm(){
-
+    //Удаление фильма
+    @DeleteMapping("/{id}")
+    public void removeFilm(@PathVariable("id") Integer id) {
+        filmService.getInMemoryFilmStorage().removeFilm(id);
     }
 
     //пользователь ставит лайк фильму
     @PutMapping("/{id}/like/{userId}")
-    public void addLike(@PathVariable("id") String id, @PathVariable("userId") String userId){
-        int intId = Integer.parseInt(id);
-        int intUserId = Integer.parseInt(userId);
-        filmService.addLike(intId, intUserId);
+    public void addLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
+        filmService.addLike(id, userId);
     }
 
     //удаление лайка
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeLike(@PathVariable("id") String id, @PathVariable("userId") String userId){
-        int intId = Integer.parseInt(id);
-        int intUserId = Integer.parseInt(userId);
-        filmService.removeLike(intId, intUserId);
+    public void removeLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
+        filmService.removeLike(id, userId);
     }
 
     //возрат списка первых по количеству лайков N фильмов
-
     @GetMapping("/popular")
-    public List<Film> getListOfPopularFilms(@RequestParam(required = false) Integer count){
-        //int intCount = 10;
-        if(count ==null){
+    public List<Film> getListOfPopularFilms(@RequestParam(required = false) Integer count) {
+        if (count == null) {
             count = 10;
         }
         return filmService.getListOfPopularFilms(count);
     }
-
-    /*@GetMapping("/popular?count={count}")
-    public List<Film> getListOfPopularFilms(@PathVariable ("count") String count){
-        int intCount = Integer.parseInt(count);
-        return filmService.getListOfPopularFilms(intCount);
-    }*/
 }

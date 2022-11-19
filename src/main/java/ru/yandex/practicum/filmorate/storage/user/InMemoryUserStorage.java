@@ -18,8 +18,6 @@ public class InMemoryUserStorage implements UserStorage {
     private int idUser;
     private final Map<Integer, User> allUsers = new HashMap<>();
 
-
-
     public User addUser(User user) throws ValidationException {
         Validations.validateUser(user);
         idUser++;
@@ -43,7 +41,7 @@ public class InMemoryUserStorage implements UserStorage {
         return allUsers.get(user.getId());
     }
 
-    public List<User> getAllUsers(){
+    public List<User> getAllUsers() {
         log.info("Все пользователи получены");
         return List.copyOf(allUsers.values());
     }
@@ -55,17 +53,24 @@ public class InMemoryUserStorage implements UserStorage {
         } else {
             log.info("Пользователь не получен");
             throw new UserNotFoundException(String.format(
-                    "Пользователь с ID %s не найден",
-                    id));
+                    "Пользователь с ID %s не найден", id));
         }
         return allUsers.get(id);
     }
 
-    public Map<Integer, User> getAllUsersMap(){
-        return allUsers;
+    //удалить пользователя по id
+    public void removeUser(int id) {
+        if (allUsers.containsKey(id)) {
+            allUsers.remove(id);
+            log.info("Пользователь с ID = " + id + "удален");
+        } else {
+            log.info("Пользователь не получен");
+            throw new UserNotFoundException(String.format(
+                    "Пользователь с ID %s не найден", id));
+        }
     }
 
-    public void removeUser() {
-
+    public Map<Integer, User> getAllUsersMap() {
+        return allUsers;
     }
 }

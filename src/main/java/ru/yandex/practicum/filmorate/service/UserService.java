@@ -28,9 +28,9 @@ public class UserService {
             User user = inMemoryUserStorage.getAllUsersMap().get(id);
             User userFriend = inMemoryUserStorage.getAllUsersMap().get(friendId);
             user.getListOfFriends().add(friendId);
-            user.setListOfFriends(SortingSet.SortingSet(user.getListOfFriends()));
+            user.setListOfFriends(SortingSet.Sorting(user.getListOfFriends()));
             userFriend.getListOfFriends().add(id);
-            userFriend.setListOfFriends(SortingSet.SortingSet(userFriend.getListOfFriends()));
+            userFriend.setListOfFriends(SortingSet.Sorting(userFriend.getListOfFriends()));
             log.info("Пользователи " + user.getName() + " и " + userFriend.getName() + " теперь друзья");
         } else {
             log.info("Пользователь не получен");

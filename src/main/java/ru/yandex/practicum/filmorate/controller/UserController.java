@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.controller;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -9,7 +8,6 @@ import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Set;
 
 @RequestMapping(value = "/users")
 @RestController
@@ -43,44 +41,36 @@ public class UserController {
     //получить пользователя по id
     @GetMapping("/{id}")
     public User getUser(@PathVariable("id") Integer id) {
-        //int intId = Integer.parseInt(id);
         return userService.getInMemoryUserStorage().getUser(id);
     }
 
     //удалить пользователя
-    @DeleteMapping
-    public void removeUser() {
-        userService.getInMemoryUserStorage().removeUser();
+    @DeleteMapping("/{id}")
+    public void removeUser(@PathVariable("id") Integer id) {
+        userService.getInMemoryUserStorage().removeUser(id);
     }
 
     //добавления в друзья
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriends(@PathVariable("id") Integer id, @PathVariable("friendId") Integer friendId) {
-        //int intId = Integer.parseInt(id);
-        //int intFriendId = Integer.parseInt(friendId);
         userService.addFriend(id, friendId);
     }
 
     //удаление из друзей
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void removeFriend(@PathVariable("id") String id, @PathVariable("friendId") String friendId) {
-        int intId = Integer.parseInt(id);
-        int intFriendId = Integer.parseInt(friendId);
-        userService.removeFriend(intId, intFriendId);
+    public void removeFriend(@PathVariable("id") Integer id, @PathVariable("friendId") Integer friendId) {
+        userService.removeFriend(id, friendId);
     }
 
     //возвращаем список пользователей являющихся его друзъями
     @GetMapping("/{id}/friends")
-    public List<User> findFriends(@PathVariable("id") String id) {
-        int intId = Integer.parseInt(id);
-        return userService.findFriends(intId);
+    public List<User> findFriends(@PathVariable("id") Integer id) {
+        return userService.findFriends(id);
     }
 
     // список общих друзей
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> mutualFriends(@PathVariable("id") String id, @PathVariable String otherId) {
-        int intId = Integer.parseInt(id);
-        int intOtherId = Integer.parseInt(otherId);
-        return userService.mutualFriends(intId, intOtherId);
+    public List<User> mutualFriends(@PathVariable("id") Integer id, @PathVariable Integer otherId) {
+        return userService.mutualFriends(id, otherId);
     }
 }

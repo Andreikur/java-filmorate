@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.*;
-import org.hibernate.validator.constraints.UniqueElements;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
@@ -25,5 +24,4 @@ public class User {
     @Past
     private LocalDate birthday;
     private Set<Integer> listOfFriends = new HashSet<>();
-
 }
