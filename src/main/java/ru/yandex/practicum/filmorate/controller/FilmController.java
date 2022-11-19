@@ -68,11 +68,19 @@ public class FilmController {
     }
 
     //возрат списка первых по количеству лайков N фильмов
+
     @GetMapping("/popular")
-    public List<Film> getListOfPopularFilms(@PathVariable String count){
-        int intCount = 10;
-        intCount = Integer.parseInt(count);
-        return filmService.getListOfPopularFilms(intCount);
+    public List<Film> getListOfPopularFilms(@RequestParam(required = false) Integer count){
+        //int intCount = 10;
+        if(count ==null){
+            count = 10;
+        }
+        return filmService.getListOfPopularFilms(count);
     }
 
+    /*@GetMapping("/popular?count={count}")
+    public List<Film> getListOfPopularFilms(@PathVariable ("count") String count){
+        int intCount = Integer.parseInt(count);
+        return filmService.getListOfPopularFilms(intCount);
+    }*/
 }

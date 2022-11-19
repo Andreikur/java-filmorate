@@ -42,9 +42,9 @@ public class UserController {
 
     //получить пользователя по id
     @GetMapping("/{id}")
-    public User getUser(@PathVariable("id") String id) {
-        int intId = Integer.parseInt(id);
-        return userService.getInMemoryUserStorage().getUser(intId);
+    public User getUser(@PathVariable("id") Integer id) {
+        //int intId = Integer.parseInt(id);
+        return userService.getInMemoryUserStorage().getUser(id);
     }
 
     //удалить пользователя
@@ -55,10 +55,10 @@ public class UserController {
 
     //добавления в друзья
     @PutMapping("/{id}/friends/{friendId}")
-    public void addFriends(@PathVariable("id") String id, @PathVariable("friendId") String friendId) {
-        int intId = Integer.parseInt(id);
-        int intFriendId = Integer.parseInt(friendId);
-        userService.addFriend(intId, intFriendId);
+    public void addFriends(@PathVariable("id") Integer id, @PathVariable("friendId") Integer friendId) {
+        //int intId = Integer.parseInt(id);
+        //int intFriendId = Integer.parseInt(friendId);
+        userService.addFriend(id, friendId);
     }
 
     //удаление из друзей

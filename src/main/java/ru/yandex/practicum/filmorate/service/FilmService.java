@@ -4,14 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.comparator.FilmLikeComparator;
+
+import java.util.*;
+
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 @Service
 public class FilmService {
@@ -60,26 +60,22 @@ public class FilmService {
     //возрат списка первых по количеству лайков N фильмов
     //ДОРАБОТАТЬ!!!!!!!!!!!!!
     public List<Film> getListOfPopularFilms(int count) {
+
         List<Film> listFilms = new ArrayList<>();
-        Film thisFilm;
-        for (Film film : inMemoryFilmStorage.getAllFilmMap().values()) {
-            if (listFilms.isEmpty()) {
-                listFilms.add(film);
-            } else {
-                if (inMemoryFilmStorage.getAllFilmMap().size() < count) {
-                    count = listFilms.size();
-                }
-                for (int i = 0; i < count - 1; i++) {
-                    thisFilm = listFilms.get(i);
-                    if (film.getLike() > thisFilm.getLike() || thisFilm == null) {
-                        listFilms.add(i, film);
-                        break;
-                    }
-                }
-            }
+        for (Film film : inMemoryFilmStorage.getAllFilmMap().values()){
+            listFilms.add(film);
         }
-        return listFilms;
+
+        if (listFilms.size() < count) {
+            count = listFilms.size();
+        }
+
+        Collections.sort(listFilms, new FilmLikeComparator().reversed());
+
+        List<Film> subList = listFilms.subList(0, count);
+        return subList;
     }
+
 
     public InMemoryFilmStorage getInMemoryFilmStorage() {
         return inMemoryFilmStorage;
