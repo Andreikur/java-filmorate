@@ -38,6 +38,13 @@ public class FilmController {
         return filmService.getInMemoryFilmStorage().getAllFilms();
     }
 
+    //получить фильм
+    @GetMapping("/{id}")
+    public Film getFilm(@PathVariable("id") String id){
+        int intId = Integer.parseInt(id);
+        return filmService.getInMemoryFilmStorage().getFilm(intId);
+    }
+
     //Удаление фильма ДОРАБОТАТЬ
     @DeleteMapping
     public void removeFilm(){
@@ -61,11 +68,11 @@ public class FilmController {
     }
 
     //возрат списка первых по количеству лайков N фильмов
-    @GetMapping(value = {"/popular?count={count}", "/popular"})
-    public Film[] getListOfPopularFilms(@PathVariable String id){
-        int intId = 10;
-        intId = Integer.parseInt(id);
-        return filmService.getListOfPopularFilms(intId);
+    @GetMapping("/popular")
+    public List<Film> getListOfPopularFilms(@PathVariable String count){
+        int intCount = 10;
+        intCount = Integer.parseInt(count);
+        return filmService.getListOfPopularFilms(intCount);
     }
 
 }

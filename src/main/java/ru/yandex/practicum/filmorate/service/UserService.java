@@ -4,12 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.auxiliary.SortingSet;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -28,7 +28,9 @@ public class UserService {
             User user = inMemoryUserStorage.getAllUsersMap().get(id);
             User userFriend = inMemoryUserStorage.getAllUsersMap().get(friendId);
             user.getListOfFriends().add(friendId);
+            user.setListOfFriends(SortingSet.SortingSet(user.getListOfFriends()));
             userFriend.getListOfFriends().add(id);
+            userFriend.setListOfFriends(SortingSet.SortingSet(userFriend.getListOfFriends()));
             log.info("Пользователи " + user.getName() + " и " + userFriend.getName() + " теперь друзья");
         } else {
             log.info("Пользователь не получен");
@@ -55,8 +57,8 @@ public class UserService {
     }
 
     //вернуть всех друзей пользователя
-    public Set<User> findFriends(int id){
-        Set<User> userFriends = new HashSet<>();
+    public List<User> findFriends(int id){
+        List<User> userFriends = new ArrayList<>();
         for(int idFriend : inMemoryUserStorage.getAllUsersMap().get(id).getListOfFriends()){
             userFriends.add(inMemoryUserStorage.getAllUsersMap().get(idFriend));
         }
@@ -64,12 +66,12 @@ public class UserService {
     }
 
     // список общих друзей
-    public Set<Integer> mutualFriends (int id, int otherId){
-        Set<Integer> listMutualOfFriends = new HashSet<>();
+    public List<User> mutualFriends (int id, int otherId){
+        List<User> listMutualOfFriends = new ArrayList<>();
         for (int idFriends :inMemoryUserStorage.getAllUsersMap().get(id).getListOfFriends()){
             for(int idOtherFriends : inMemoryUserStorage.getAllUsersMap().get(otherId).getListOfFriends()){
                 if(idFriends == idOtherFriends){
-                    listMutualOfFriends.add(idFriends);
+                    listMutualOfFriends.add(inMemoryUserStorage.getAllUsersMap().get(idFriends));
                     break;
                 }
             }

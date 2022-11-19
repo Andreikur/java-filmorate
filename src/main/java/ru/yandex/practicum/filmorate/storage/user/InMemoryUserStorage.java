@@ -48,9 +48,7 @@ public class InMemoryUserStorage implements UserStorage {
         return List.copyOf(allUsers.values());
     }
 
-    //
-    //
-    //доработать возврат статус кода
+    //получить пользователя по id
     public User getUser(int id) {
         if (allUsers.containsKey(id)) {
             log.info("Пользователь с ID = " + id + "получен");

@@ -47,7 +47,7 @@ public class UserController {
         return userService.getInMemoryUserStorage().getUser(intId);
     }
 
-    //удалить пользователя?????
+    //удалить пользователя
     @DeleteMapping
     public void removeUser() {
         userService.getInMemoryUserStorage().removeUser();
@@ -71,14 +71,14 @@ public class UserController {
 
     //возвращаем список пользователей являющихся его друзъями
     @GetMapping("/{id}/friends")
-    public Set<User> findFriends(@PathVariable("id") String id) {
+    public List<User> findFriends(@PathVariable("id") String id) {
         int intId = Integer.parseInt(id);
         return userService.findFriends(intId);
     }
 
     // список общих друзей
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Set<Integer> mutualFriends(@PathVariable("id") String id, @PathVariable String otherId) {
+    public List<User> mutualFriends(@PathVariable("id") String id, @PathVariable String otherId) {
         int intId = Integer.parseInt(id);
         int intOtherId = Integer.parseInt(otherId);
         return userService.mutualFriends(intId, intOtherId);
