@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.auxiliary.SortingSet;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
@@ -28,9 +27,7 @@ public class UserService {
             User user = inMemoryUserStorage.getAllUsersMap().get(id);
             User userFriend = inMemoryUserStorage.getAllUsersMap().get(friendId);
             user.getListOfFriends().add(friendId);
-            user.setListOfFriends(SortingSet.Sorting(user.getListOfFriends()));
             userFriend.getListOfFriends().add(id);
-            userFriend.setListOfFriends(SortingSet.Sorting(userFriend.getListOfFriends()));
             log.info("Пользователи " + user.getName() + " и " + userFriend.getName() + " теперь друзья");
         } else {
             log.info("Пользователь не получен");
