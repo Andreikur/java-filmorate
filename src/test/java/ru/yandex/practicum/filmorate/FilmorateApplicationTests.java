@@ -9,6 +9,10 @@ import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.validations.Validations;
 
 import java.time.LocalDate;
@@ -17,13 +21,17 @@ import java.time.LocalDate;
 public class FilmorateApplicationTests {
     Film film;
     User user;
+    FilmService filmService;
+    UserService userService;
     FilmController filmController;
     UserController userController;
 
     @BeforeEach
     void initialValues() {
-        filmController = new FilmController();
-        userController = new UserController();
+        filmService = new FilmService(new InMemoryFilmStorage());
+        filmController = new FilmController(filmService);
+        userService = new UserService(new InMemoryUserStorage());
+        userController = new UserController(userService);
         film = Film.builder()
                 .name("Тестовый фильм 1")
                 .description("Описание 1")

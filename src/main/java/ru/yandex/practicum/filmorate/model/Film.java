@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,4 +25,6 @@ public class Film {
     private LocalDate releaseDate;
     @Positive
     private int duration;
+    private int like;
+    private Set<Integer> listOfUsersWhoHaveLiked = new HashSet<>();
 }

@@ -1,54 +1,73 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.validations.Validations;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RequestMapping(value = "/films")
 @RestController
 public class FilmController {
 
-    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
-    private int idFilm;
-    private final Map<Integer, Film> allFilms = new HashMap<>();
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     //Добавляем фильм
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
-        Validations.validateFilm(film);
-        idFilm++;
-        film.setId(idFilm);
-        allFilms.put(idFilm, film);
-        log.info("Фильм добавлен");
-        return allFilms.get(film.getId());
+        return filmService.getInMemoryFilmStorage().addFilm(film);
     }
 
     //Обновление фильма
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) throws ValidationException {
-        Validations.validateFilm(film);
-        if (allFilms.containsKey(film.getId())) {
-            allFilms.put(film.getId(), film);
-        } else {
-            log.info("Фильм не обновлен");
-            throw new ValidationException("Фмльм отсутствует в коллекции");
-        }
-        log.info("Фильм обновлен");
-        return allFilms.get(film.getId());
+        return filmService.getInMemoryFilmStorage().updateFilm(film);
     }
 
     //получить все фильмы
     @GetMapping
     public List<Film> getAllFilms() {
-        log.info("Получены все фильмы");
-        return List.copyOf(allFilms.values());
+        return filmService.getInMemoryFilmStorage().getAllFilms();
+    }
+
+    //получить фильм
+    @GetMapping("/{id}")
+    public Film getFilm(@PathVariable("id") Integer id) {
+        return filmService.getInMemoryFilmStorage().getFilm(id);
+    }
+
+    //Удаление фильма
+    @DeleteMapping("/{id}")
+    public void removeFilm(@PathVariable("id") Integer id) {
+        filmService.getInMemoryFilmStorage().removeFilm(id);
+    }
+
+    //пользователь ставит лайк фильму
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
+        filmService.addLike(id, userId);
+    }
+
+    //удаление лайка
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
+        filmService.removeLike(id, userId);
+    }
+
+    //возрат списка первых по количеству лайков N фильмов
+    @GetMapping("/popular")
+    public List<Film> getListOfPopularFilms(@RequestParam(required = false) Integer count) {
+        if (count == null) {
+            count = 10;
+        }
+        return filmService.getListOfPopularFilms(count);
     }
 }
