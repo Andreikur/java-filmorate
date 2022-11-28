@@ -4,7 +4,7 @@ Template repository for Filmorate project.
 Ссылка на структуру базы данных для приложения Filmorate:
 \description\structure_Filmorate_SQL.jpg
 
-![Ссылка на структуру базы данных для приложения Filmorate:](\description\structure_Filmorate_SQL.jpg)
+![Ссылка на структуру базы данных для приложения Filmorate:](/description/structure_Filmorate_SQL.jpg)
 
 Ссылка на lucid.app:
 
