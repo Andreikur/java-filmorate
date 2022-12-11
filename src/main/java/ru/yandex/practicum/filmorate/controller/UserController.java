@@ -23,31 +23,31 @@ public class UserController {
     //Добавляем пользователя
     @PostMapping
     public User addUser(@Valid @RequestBody User user) throws ValidationException {
-        return userService.getInMemoryUserStorage().addUser(user);
+        return userService.getUserStorage().addUser(user);
     }
 
     //обновление пользователя
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) throws ValidationException {
-        return userService.getInMemoryUserStorage().updateUser(user);
+        return userService.getUserStorage().updateUser(user);
     }
 
     //получить всех пользователей
     @GetMapping
     public List<User> getAllUsers() {
-        return userService.getInMemoryUserStorage().getAllUsers();
+        return userService.getUserStorage().getAllUsers();
     }
 
     //получить пользователя по id
     @GetMapping("/{id}")
     public User getUser(@PathVariable("id") Integer id) {
-        return userService.getInMemoryUserStorage().getUser(id);
+        return userService.getUserStorage().getUser(id);
     }
 
     //удалить пользователя
     @DeleteMapping("/{id}")
     public void removeUser(@PathVariable("id") Integer id) {
-        userService.getInMemoryUserStorage().removeUser(id);
+        userService.getUserStorage().removeUser(id);
     }
 
     //добавления в друзья

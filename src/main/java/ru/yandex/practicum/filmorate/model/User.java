@@ -23,5 +23,7 @@ public class User {
     private String name;
     @Past
     private LocalDate birthday;
-    private Set<Integer> listOfFriends = new TreeSet<>();
+    //private Set<Integer> listOfFriends = new TreeSet<>();
+
+
 }

@@ -27,4 +27,8 @@ public class Film {
     private int duration;
     private int like;
     private Set<Integer> listOfUsersWhoHaveLiked = new HashSet<>();
+    @NotNull
+    private int genre;
+    @NotNull
+    private int ratingMPA;
 }
