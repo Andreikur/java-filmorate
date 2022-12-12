@@ -115,7 +115,8 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void addUserFiends (int id, int friendId){
         String sglQuery1 = "insert into USER_FRIENDS (USER_ID, FRIEND_ID, FRIENDSHIP_CONFIRMED) values (?, ?, ?)";
-        String sglQuery2 = "update USER_FRIENDS set FRIENDSHIP_CONFIRMED=? where USER_ID=? and FRIEND_ID=?";
+        //String sglQuery2 = "update USER_FRIENDS set FRIENDSHIP_CONFIRMED=? where USER_ID=? and FRIEND_ID=?";
+        String sglQuery2 = "update USER_FRIENDS set FRIENDSHIP_CONFIRMED=? where USER_ID=? and FRIEND_ID=? and FRIEND_ID<>USER_ID";
         final String checkQuery = "select * from USERS where USER_ID=?";
         SqlRowSet userRows1 = jdbcTemplate.queryForRowSet(checkQuery, id);
         SqlRowSet userRows2 = jdbcTemplate.queryForRowSet(checkQuery, friendId);
@@ -129,11 +130,16 @@ public class UserDbStorage implements UserStorage {
         }
         final String checkMutualQuery = "select * from USER_FRIENDS  where USER_ID = ? AND FRIEND_ID = ?";
         SqlRowSet userRows3 = jdbcTemplate.queryForRowSet(checkMutualQuery, id, friendId);
+
         if(!userRows3.first()){
             jdbcTemplate.update(sglQuery1, id, friendId, false);
-        } else {
+                    } else {
             jdbcTemplate.update(sglQuery2, true, id, friendId);
         }
+
+        //final String checkQueryRemove = "delete from USER_FRIENDS  where FRIEND_ID=USER_ID ";
+        //jdbcTemplate.update(checkQueryRemove);
+
         log.info("Пользователь %S подружился с пользователем %s", id, friendId);
     }
 
@@ -165,9 +171,7 @@ public class UserDbStorage implements UserStorage {
             throw new UserNotFoundException(String.format(
                     "Пользователь %s не найден", id));
         }
-        //final String sqlQuery = "select * from USERS inner join USER_FRIENDS as UF on USERS.USER_ID = UF.FRIEND_ID";
-        final String sqlQuery = "select distinct USERS.USER_ID, EMAIL, LOGIN, USER_NAME, BIRTHDAY from USERS inner join USER_FRIENDS as UF on USERS.USER_ID = UF.FRIEND_ID";
-        //final String sqlQuery = "select distinct USERS.USER_ID, EMAIL, LOGIN, USER_NAME, BIRTHDAY from USERS right join USER_FRIENDS as UF on  USERS.USER_ID = UF.USER_ID where USERS.USER_ID<>" + id;
+        final String sqlQuery = "select USERS.USER_ID, EMAIL, LOGIN, USER_NAME, BIRTHDAY from USERS inner join USER_FRIENDS as UF on UF.FRIEND_ID = USERS.USER_ID where UF.FRIEND_ID <>" + id;
         final List <User> users = jdbcTemplate.query(sqlQuery, UserDbStorage::makeUser);
         return users;
     }
@@ -199,7 +203,6 @@ public class UserDbStorage implements UserStorage {
                 rs.getString("LOGIN"),
                 rs. getString("USER_NAME"),
                 rs.getDate("BIRTHDAY").toLocalDate()
-                //new HashSet<>()
                 //new UserFriends(rs.getInt("MPA.MPA_ID"), rs.getString("MPA.MPA"))
         );
     }
