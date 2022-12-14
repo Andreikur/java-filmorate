@@ -4,7 +4,6 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
-import java.util.Map;
 
 public interface UserStorage {
     User addUser(User user) throws ValidationException;
@@ -16,8 +15,6 @@ public interface UserStorage {
     User getUser(int id);
 
     void removeUser(int id);
-
-    //Map<Integer, User> getAllUsersMap();
 
     void addUserFiends(int id, int friendId);
 

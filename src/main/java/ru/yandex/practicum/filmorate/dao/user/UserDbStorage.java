@@ -89,7 +89,21 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void removeUser(int id) {
+        final String checkQuery = "select * from USERS where USER_ID=?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, id);
+        if (!userRows.next()) {
+            log.info("Пользователь не найден");
+            throw new UserNotFoundException(String.format(
+                    "Пользователь %s не найден", id));
+        }
+        //удаление пользователя
+        String sglQuery = "delete from USERS where USER_ID=?";
+        jdbcTemplate.queryForRowSet(sglQuery, id);
+        // удаление пользователя из списка друзей
+        String sglQuery2 = "delete from USER_FRIENDS where USER_ID=? or FRIEND_ID=?";
+        jdbcTemplate.queryForRowSet(sglQuery2, id, id);
     }
+
     @Override
     public void addUserFiends(int id, int friendId) {
         String sglQuery1 = "insert into USER_FRIENDS (USER_ID, FRIEND_ID, FRIENDSHIP_CONFIRMED) values (?, ?, ?)";
@@ -130,17 +144,17 @@ public class UserDbStorage implements UserStorage {
             log.info("Друг не удален");
             throw new UserNotFoundException(String.format("Пользователь %s не найден", friendId));
         }
-        final String sqlQuery = "delete from  USER_FRIENDS where USER_ID=? and FRIEND_ID=?";
+        final String sqlQuery = "delete from USER_FRIENDS where USER_ID=? and FRIEND_ID=?";
         jdbcTemplate.update(sqlQuery, id, friendId);
     }
 
     //вернуть всех друзей пользователя
     @Override
     public List<User> findFriends(int id) {
-        final String checkQuery = "select * from USER_FRIENDS where USER_ID=? or FRIEND_ID=?";
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, id, id);
+        final String checkQuery = "select * from USERS where USER_ID=?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, id);
         if (!userRows.next()) {
-            log.info("Пользователь не найден, или у него нет друзей");
+            log.info("Пользователь не найден");
             throw new UserNotFoundException(String.format(
                     "Пользователь %s не найден", id));
         }

@@ -30,7 +30,6 @@ public class FilmDbStorage implements FilmStorage {
         Validations.validateFilm(film);
         String sglQuery = "insert into FILMS (FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION) values (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        int mpaId;
 
         jdbcTemplate.update(con -> {
             PreparedStatement stmt = con.prepareStatement(sglQuery, new String[]{"FILM_ID"});
@@ -128,11 +127,10 @@ public class FilmDbStorage implements FilmStorage {
 
         final String sqlQuery = "select * from FILMS " +
                 "left join USER_LIKED_FILM ULF ON FILMS.FILM_ID = ULF.FILM_ID " +
-                "group by FILMS.FILM_ID, ULF.FILM_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM ) " +
+                "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM ) " +
                 "order by COUNT(ULF.FILM_ID) " +
                 "DESC LIMIT ?";
-        final List<Film> films = jdbcTemplate.query(sqlQuery, this::makeFilm, count);
-        return films;
+        return jdbcTemplate.query(sqlQuery, this::makeFilm, count);
     }
 
     public void addLike(int filmId, int userId) {

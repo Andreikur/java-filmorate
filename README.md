@@ -64,4 +64,14 @@ from USERS inner join USER_FRIENDS as UF on UF.FRIEND_ID = USERS.USER_ID
 where UF.USER_ID=?
 
 
+### Ссылки на взаимное ревью (промежуточное задание спринта 11)
+
+https://github.com/Andreikur/java-filmorate/commit/3f4ad932b3accb0ca0b01f8fad0ebd1078789bb0?diff=unified
+
+https://github.com/brawo1994/java-filmorate/pull/3
+
+
+
+
+
 
