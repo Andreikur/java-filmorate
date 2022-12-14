@@ -25,6 +25,26 @@ create table  IF NOT EXISTS FILMS
     DURATION        INTEGER not null
 );
 
+create table FILM_MPA
+(
+    FILM_ID INTEGER,
+    MPA_ID  INTEGER,
+    constraint FILM_MPA_FILMS_FILM_ID_FK
+        foreign key (FILM_ID) references FILMS,
+    constraint FILM_MPA_MPA_MPA_ID_FK
+        foreign key (MPA_ID) references MPA
+);
+
+create table FILM_GENRE
+(
+    FILM_ID  INTEGER,
+    GENRE_ID INTEGER,
+    constraint FILM_GENRE_FILMS_FILM_ID_FK
+        foreign key (FILM_ID) references FILMS,
+    constraint FILM_GENRE_GENRE_GENRE_ID_FK
+        foreign key (GENRE_ID) references GENRE
+);
+
 create table  IF NOT EXISTS USERS
 (
     USER_ID   INTEGER auto_increment
@@ -56,24 +76,4 @@ create table  IF NOT EXISTS USER_LIKED_FILM
         foreign key (FILM_ID) references FILMS,
     constraint USER_LIKED_FILM_USERS_USER_ID_FK
         foreign key (USER_ID) references USERS
-);
-
-create table FILM_MPA
-(
-    FILM_ID INTEGER,
-    MPA_ID  INTEGER,
-    constraint FILM_MPA_FILMS_FILM_ID_FK
-        foreign key (FILM_ID) references FILMS,
-    constraint FILM_MPA_MPA_MPA_ID_FK
-        foreign key (MPA_ID) references MPA
-);
-
-create table FILM_GENRE
-(
-    FILM_ID  INTEGER,
-    GENRE_ID INTEGER,
-    constraint FILM_GENRE_FILMS_FILM_ID_FK
-        foreign key (FILM_ID) references FILMS,
-    constraint FILM_GENRE_GENRE_GENRE_ID_FK
-        foreign key (GENRE_ID) references GENRE
 );
