@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.dao;
+package ru.yandex.practicum.filmorate.dao.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.validations.Validations;
 
 import java.sql.*;
@@ -72,7 +71,7 @@ public class FilmDbStorage implements FilmStorage {
             throw new FilmNotFoundException(String.format(
                     "Фильм  %s не найден", film.getName()));
         }
-        final String sglQuery = "update FILMS set FILM_NAME=?, DESCRIPTION=?, RELEASE_DATE=?, DURATION=? " +
+        final String sglQuery = "update FILMS set FILM_NAME=?, DESCRIPTION=?, RELEASE_DATE=?, DURATION=?" +
                 "where FILM_ID=?";
         jdbcTemplate.update(sglQuery, film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getId());

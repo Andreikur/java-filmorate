@@ -8,7 +8,7 @@ import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Getter
 @Setter
 //@Data
@@ -23,8 +23,6 @@ public class Film {
     private LocalDate releaseDate;
     @Positive
     private int duration;
-    //private int like;
-    //private Set<Integer> listOfUsersWhoHaveLiked = new HashSet<>();
     private Mpa mpa;
     private List<Genre> genres;
 
@@ -34,14 +32,5 @@ public class Film {
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
-    }
-
-    public Film(int id, String name, String description, LocalDate releaseDate, int duration, Mpa mpa) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.releaseDate = releaseDate;
-        this.duration = duration;
-        this.mpa = mpa;
     }
 }

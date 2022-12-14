@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.user;
+package ru.yandex.practicum.filmorate.dao.user;
 
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -19,11 +19,11 @@ public interface UserStorage {
 
     //Map<Integer, User> getAllUsersMap();
 
-    void addUserFiends (int id, int friendId);
+    void addUserFiends(int id, int friendId);
 
     List<User> findFriends(int id);
 
-    List<User> mutualFriends (int id, int otherId);
+    List<User> mutualFriends(int id, int otherId);
 
     void removeFriend(int id, int friendId);
 }

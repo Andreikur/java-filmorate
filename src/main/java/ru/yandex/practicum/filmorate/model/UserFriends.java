@@ -12,7 +12,6 @@ import java.util.Map;
 @Setter
 public class UserFriends {
     private int id;
-    //private Map<Integer, Boolean> list;
     private int friendsId;
     private boolean status;
 }

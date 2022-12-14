@@ -11,8 +11,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.validations.Validations;
 
 import java.time.LocalDate;
@@ -28,7 +26,7 @@ public class FilmorateApplicationTests {
 
     @BeforeEach
     void initialValues() {
-        filmService = new FilmService(new InMemoryFilmStorage());
+        filmService = new FilmService(new ());
         filmController = new FilmController(filmService);
         userService = new UserService(new InMemoryUserStorage());
         userController = new UserController(userService);

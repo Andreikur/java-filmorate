@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.dao.user.UserStorage;
 
 import java.util.*;
 
@@ -21,23 +21,23 @@ public class UserService {
     }
 
     //добавить в друзья
-    public void addFriend(int id, int friendId){
+    public void addFriend(int id, int friendId) {
         userStorage.addUserFiends(id, friendId);
-      }
+    }
 
     //удалить из друзей
-    public void removeFriend(int id, int friendId){
+    public void removeFriend(int id, int friendId) {
         userStorage.removeFriend(id, friendId);
-        }
+    }
 
     //вернуть всех друзей пользователя
-    public List<User> findFriends(int id){
+    public List<User> findFriends(int id) {
         return userStorage.findFriends(id);
     }
 
     // список общих друзей
-    public List<User> mutualFriends (int id, int otherId){
-        return userStorage.mutualFriends(id,otherId);
+    public List<User> mutualFriends(int id, int otherId) {
+        return userStorage.mutualFriends(id, otherId);
     }
 
     public UserStorage getUserStorage() {
