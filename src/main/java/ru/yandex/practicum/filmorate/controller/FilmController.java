@@ -23,44 +23,44 @@ public class FilmController {
     //Добавляем фильм
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
-        return filmService.getInMemoryFilmStorage().addFilm(film);
+        return filmService.getFilmStorage().addFilm(film);
     }
 
     //Обновление фильма
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) throws ValidationException {
-        return filmService.getInMemoryFilmStorage().updateFilm(film);
+        return filmService.getFilmStorage().updateFilm(film);
     }
 
     //получить все фильмы
     @GetMapping
     public List<Film> getAllFilms() {
-        return filmService.getInMemoryFilmStorage().getAllFilms();
+        return filmService.getFilmStorage().getAllFilms();
     }
 
     //получить фильм
     @GetMapping("/{id}")
     public Film getFilm(@PathVariable("id") Integer id) {
-        return filmService.getInMemoryFilmStorage().getFilm(id);
+        return filmService.getFilmStorage().getFilm(id);
     }
 
     //Удаление фильма
     @DeleteMapping("/{id}")
     public void removeFilm(@PathVariable("id") Integer id) {
-        filmService.getInMemoryFilmStorage().removeFilm(id);
+        filmService.getFilmStorage().removeFilm(id);
     }
 
     //пользователь ставит лайк фильму
-    @PutMapping("/{id}/like/{userId}")
+    /*@PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
         filmService.addLike(id, userId);
-    }
+    }*/
 
     //удаление лайка
-    @DeleteMapping("/{id}/like/{userId}")
+    /*@DeleteMapping("/{id}/like/{userId}")
     public void removeLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
         filmService.removeLike(id, userId);
-    }
+    }*/
 
     //возрат списка первых по количеству лайков N фильмов
     @GetMapping("/popular")

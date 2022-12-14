@@ -17,7 +17,7 @@ public interface UserStorage {
 
     void removeUser(int id);
 
-    Map<Integer, User> getAllUsersMap();
+    //Map<Integer, User> getAllUsersMap();
 
     void addUserFiends (int id, int friendId);
 

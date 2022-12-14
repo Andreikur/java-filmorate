@@ -9,7 +9,5 @@ import javax.validation.constraints.NotBlank;
 @Setter
 public class Mpa {
     private int id;
-    @NonNull
-    @NotBlank
     private String name;
 }

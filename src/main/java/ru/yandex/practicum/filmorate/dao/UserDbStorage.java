@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -20,14 +19,12 @@ import java.util.*;
 
 @Component
 @Slf4j
-@Qualifier("UserDbStorage")
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
 
     public UserDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
-
 
     @Override
     public User addUser(User user) throws ValidationException {
@@ -60,8 +57,7 @@ public class UserDbStorage implements UserStorage {
         if (!userRows.next()) {
             log.info("Пользователь не обновлен");
             throw new UserNotFoundException(String.format(
-                    "Пользователь %s не найден",
-                    user.getName()));
+                    "Пользователь %s не найден", user.getName()));
         }
         final String sglQuery = "update USERS set EMAIL=?, LOGIN=?, USER_NAME=?, BIRTHDAY=? where USER_ID=?";
         jdbcTemplate.update(sglQuery, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
@@ -95,17 +91,16 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void removeUser(int id) {
-
     }
 
-    @Override
-    public Map<Integer, User> getAllUsersMap() {
+    /*@Override
+    public Map<Integer, User>  () {
         Map<Integer, User> userMap = new HashMap<>();
         for (User user : getAllUsers()) {
             userMap.put(user.getId(), user);
         }
         return userMap;
-    }
+    }*/
 
     @Override
     public void addUserFiends(int id, int friendId) {
@@ -168,6 +163,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     //список общих друзей
+    @Override
     public List<User> mutualFriends(int id, int otherId) {
         final String checkQuery = "select * from USERS where USER_ID=?";
         SqlRowSet userRows1 = jdbcTemplate.queryForRowSet(checkQuery, id);

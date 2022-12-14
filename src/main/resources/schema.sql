@@ -3,7 +3,7 @@ create table IF NOT EXISTS GENRE
     GENRE_ID INTEGER not null
         primary key
         unique,
-    GENRE    CHARACTER VARYING(20)
+    GENRE_NAME CHARACTER VARYING(20)
 );
 
 create table  IF NOT EXISTS MPA
@@ -11,7 +11,7 @@ create table  IF NOT EXISTS MPA
     MPA_ID INTEGER not null
         primary key
         unique,
-    MPA    CHARACTER VARYING(10)
+    MPA_NAME CHARACTER VARYING(10)
 );
 
 create table  IF NOT EXISTS FILMS
@@ -19,17 +19,10 @@ create table  IF NOT EXISTS FILMS
     FILM_ID         INTEGER auto_increment
         primary key
         unique,
-    FILM_NAME       CHARACTER(200) not null,
-    "DESCRIPTION "  CHARACTER(200),
-    "RELEASE_DATE " DATE           not null,
-    DURATION        INTEGER        not null,
-    LIKE_USERS      INTEGER,
-    GENRE           INTEGER        not null,
-    RATING_MPA      INTEGER        not null,
-    constraint FILMS_GENRE_GENRE_ID_FK
-        foreign key (GENRE) references GENRE,
-    constraint FILMS_MPA_MPA_ID_FK
-        foreign key (RATING_MPA) references MPA
+    FILM_NAME       CHARACTER VARYING(200) not null,
+    DESCRIPTION     CHARACTER VARYING(200),
+    RELEASE_DATE    DATE not null,
+    DURATION        INTEGER not null
 );
 
 create table  IF NOT EXISTS USERS
@@ -63,4 +56,24 @@ create table  IF NOT EXISTS USER_LIKED_FILM
         foreign key (FILM_ID) references FILMS,
     constraint USER_LIKED_FILM_USERS_USER_ID_FK
         foreign key (USER_ID) references USERS
+);
+
+create table FILM_MPA
+(
+    FILM_ID INTEGER,
+    MPA_ID  INTEGER,
+    constraint FILM_MPA_FILMS_FILM_ID_FK
+        foreign key (FILM_ID) references FILMS,
+    constraint FILM_MPA_MPA_MPA_ID_FK
+        foreign key (MPA_ID) references MPA
+);
+
+create table FILM_GENRE
+(
+    FILM_ID  INTEGER,
+    GENRE_ID INTEGER,
+    constraint FILM_GENRE_FILMS_FILM_ID_FK
+        foreign key (FILM_ID) references FILMS,
+    constraint FILM_GENRE_GENRE_GENRE_ID_FK
+        foreign key (GENRE_ID) references GENRE
 );
