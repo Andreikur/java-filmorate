@@ -45,7 +45,6 @@ public class UserDbStorage implements UserStorage {
             return stmt;
         }, keyHolder);
         user.setId(keyHolder.getKey().intValue());
-
         return user;
     }
 
@@ -92,16 +91,6 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void removeUser(int id) {
     }
-
-    /*@Override
-    public Map<Integer, User>  () {
-        Map<Integer, User> userMap = new HashMap<>();
-        for (User user : getAllUsers()) {
-            userMap.put(user.getId(), user);
-        }
-        return userMap;
-    }*/
-
     @Override
     public void addUserFiends(int id, int friendId) {
         String sglQuery1 = "insert into USER_FRIENDS (USER_ID, FRIEND_ID, FRIENDSHIP_CONFIRMED) values (?, ?, ?)";

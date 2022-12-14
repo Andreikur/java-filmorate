@@ -51,16 +51,16 @@ public class FilmController {
     }
 
     //пользователь ставит лайк фильму
-    /*@PutMapping("/{id}/like/{userId}")
+    @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
         filmService.addLike(id, userId);
-    }*/
+    }
 
     //удаление лайка
-    /*@DeleteMapping("/{id}/like/{userId}")
+    @DeleteMapping("/{id}/like/{userId}")
     public void removeLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
         filmService.removeLike(id, userId);
-    }*/
+    }
 
     //возрат списка первых по количеству лайков N фильмов
     @GetMapping("/popular")

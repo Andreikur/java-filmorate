@@ -24,8 +24,8 @@ public class FilmService {
     }
 
     //пользователь ставит лайк фильму
-    /*public void addLike(int id, int userId) {
-        if (userId <= 0) {
+    public void addLike(int filmId, int userId) {
+        /*if (userId <= 0) {
             log.info("id пользователя не корректно");
             throw new UserNotFoundException(String.format(
                     "Пользователь с ID %s не найден", id));
@@ -37,12 +37,13 @@ public class FilmService {
             log.info("Фильм не получен");
             throw new FilmNotFoundException(String.format(
                     "Фильм с ID %s не найден или id пользователя не соответствут параметрам", id));
-        }
-    }*/
+        }*/
+        filmStorage.addLike(filmId, userId);
+    }
 
     //удаление лайка
-    /*public void removeLike(int id, int userId) {
-        if (userId <= 0) {
+    public void removeLike(int filmId, int userId) {
+        /*if (userId <= 0) {
             log.info("id пользователя не корректно");
             throw new UserNotFoundException(String.format(
                     "Пользователь с ID %s не найден", id));
@@ -54,20 +55,12 @@ public class FilmService {
             log.info("Фильм не получен");
             throw new FilmNotFoundException(String.format(
                     "Фильм с ID %s не найден или id пользователя не соответствут параметрам", id));
-        }
-    }*/
+        }*/
+        filmStorage.removeLike(filmId, userId);
+    }
 
     //возрат списка первых по количеству лайков N фильмов
     public List<Film> getListOfPopularFilms(int count) {
-        /*List<Film> listFilms = new ArrayList<>();
-        for (Film film : f.getAllFilmMap().values()) {
-            listFilms.add(film);
-        }
-        if (listFilms.size() < count) {
-            count = listFilms.size();
-        }
-        Collections.sort(listFilms, new FilmLikeComparator().reversed());*?
-        return listFilms.subList(0, count);*/
         return filmStorage.getListOfPopularFilms(count);
     }
 
