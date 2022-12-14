@@ -1,34 +1,33 @@
 create table IF NOT EXISTS GENRE
 (
-    GENRE_ID INTEGER not null
-        primary key
-        unique,
-    GENRE_NAME CHARACTER VARYING(20)
+    GENRE_ID   int auto_increment
+        primary key,
+    GENRE_NAME varchar(20)
 );
 
 create table  IF NOT EXISTS MPA
 (
-    MPA_ID INTEGER not null
+    MPA_ID int not null
         primary key
         unique,
-    MPA_NAME CHARACTER VARYING(10)
+    MPA_NAME varchar(10)
 );
 
 create table  IF NOT EXISTS FILMS
 (
-    FILM_ID         INTEGER auto_increment
+    FILM_ID         int auto_increment
         primary key
         unique,
-    FILM_NAME       CHARACTER VARYING(200) not null,
-    DESCRIPTION     CHARACTER VARYING(200),
+    FILM_NAME       varchar(200) not null,
+    DESCRIPTION     varchar(200),
     RELEASE_DATE    DATE not null,
     DURATION        INTEGER not null
 );
 
 create table FILM_MPA
 (
-    FILM_ID INTEGER,
-    MPA_ID  INTEGER,
+    FILM_ID int,
+    MPA_ID  int,
     constraint FILM_MPA_FILMS_FILM_ID_FK
         foreign key (FILM_ID) references FILMS,
     constraint FILM_MPA_MPA_MPA_ID_FK
@@ -37,8 +36,8 @@ create table FILM_MPA
 
 create table FILM_GENRE
 (
-    FILM_ID  INTEGER,
-    GENRE_ID INTEGER,
+    FILM_ID  int,
+    GENRE_ID int,
     constraint FILM_GENRE_FILMS_FILM_ID_FK
         foreign key (FILM_ID) references FILMS,
     constraint FILM_GENRE_GENRE_GENRE_ID_FK
@@ -47,21 +46,20 @@ create table FILM_GENRE
 
 create table  IF NOT EXISTS USERS
 (
-    USER_ID   INTEGER auto_increment
+    USER_ID   int auto_increment
+        primary key
         unique,
-    EMAIL     CHARACTER VARYING(255) not null,
-    LOGIN     CHARACTER VARYING(50)  not null,
-    USER_NAME CHARACTER VARYING(50)  not null,
-    BIRTHDAY  DATE check (BIRTHDAY < NOW()),
-    constraint USER_PK
-        primary key (USER_ID)
+    EMAIL     varchar(255) not null,
+    LOGIN     varchar(50)  not null,
+    USER_NAME varchar(50)  not null,
+    BIRTHDAY  DATE not null
 );
 
 create table  IF NOT EXISTS USER_FRIENDS
 (
-    USER_ID              INTEGER,
-    FRIEND_ID            INTEGER,
-    FRIENDSHIP_CONFIRMED BOOLEAN default FALSE,
+    USER_ID              int,
+    FRIEND_ID            int,
+    FRIENDSHIP_CONFIRMED BOOLEAN,
     constraint USER_FRIENDS_USERS_USER_ID_FK
         foreign key (USER_ID) references USERS,
     constraint USER_FRIENDS_USERS_USER_ID_FK_2
@@ -70,8 +68,8 @@ create table  IF NOT EXISTS USER_FRIENDS
 
 create table  IF NOT EXISTS USER_LIKED_FILM
 (
-    FILM_ID INTEGER,
-    USER_ID INTEGER,
+    FILM_ID int,
+    USER_ID int,
     constraint USER_LIKED_FILM_FILMS_FILM_ID_FK
         foreign key (FILM_ID) references FILMS,
     constraint USER_LIKED_FILM_USERS_USER_ID_FK
