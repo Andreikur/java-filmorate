@@ -24,7 +24,7 @@ create table  IF NOT EXISTS FILMS
     DURATION        INTEGER not null
 );
 
-create table FILM_MPA
+create table IF NOT EXISTS FILM_MPA
 (
     FILM_ID int,
     MPA_ID  int,
@@ -34,7 +34,7 @@ create table FILM_MPA
         foreign key (MPA_ID) references MPA
 );
 
-create table FILM_GENRE
+create table IF NOT EXISTS FILM_GENRE
 (
     FILM_ID  int,
     GENRE_ID int,
