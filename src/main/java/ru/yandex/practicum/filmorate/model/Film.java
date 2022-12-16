@@ -8,10 +8,8 @@ import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(toBuilder = true)
-@Getter
-@Setter
-//@Data
+@Builder
+@Data
 public class Film {
     private int id;
     @NotNull

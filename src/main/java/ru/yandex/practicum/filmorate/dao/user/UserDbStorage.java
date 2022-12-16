@@ -98,10 +98,10 @@ public class UserDbStorage implements UserStorage {
         }
         //удаление пользователя
         String sglQuery = "delete from USERS where USER_ID=?";
-        jdbcTemplate.queryForRowSet(sglQuery, id);
+        jdbcTemplate.update(sglQuery, id);
         // удаление пользователя из списка друзей
         String sglQuery2 = "delete from USER_FRIENDS where USER_ID=? or FRIEND_ID=?";
-        jdbcTemplate.queryForRowSet(sglQuery2, id, id);
+        jdbcTemplate.update(sglQuery2, id, id);
     }
 
     @Override

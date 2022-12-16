@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,15 +11,12 @@ import ru.yandex.practicum.filmorate.dao.film.FilmStorage;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @RequestMapping(value = "/mpa")
 @RestController
 public class MpaController {
 
     private final FilmStorage filmStorage;
-    @Autowired
-    public MpaController(FilmStorage filmStorage){
-        this.filmStorage = filmStorage;
-    }
 
     @GetMapping
     public List<Mpa> getAllMpa(){

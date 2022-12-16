@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,16 +11,12 @@ import ru.yandex.practicum.filmorate.dao.film.FilmStorage;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @RequestMapping(value = "/genres")
 @RestController
 public class GenresController {
 
     private final FilmStorage filmStorage;
-
-    @Autowired
-    public GenresController(FilmStorage filmStorage) {
-        this.filmStorage = filmStorage;
-    }
 
     //Получить все жанры
     @GetMapping

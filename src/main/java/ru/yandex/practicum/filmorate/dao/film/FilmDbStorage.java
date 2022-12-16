@@ -110,7 +110,6 @@ public class FilmDbStorage implements FilmStorage {
             throw new FilmNotFoundException(String.format(
                     "Фильм %s не найден", id));
         }
-        //final String sqlQuery1 = "select * from FILMS where FILM_ID = ?";
         final List<Film> films = jdbcTemplate.query(checkQuery, this::makeFilm, id);
         if (films.isEmpty()) {
             log.info("Пользователь не получен");
@@ -121,6 +120,25 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public void removeFilm(int id) {
+        final String checkQuery = "select * from FILMS where FILM_ID=?";
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(checkQuery, id);
+        if (!filmRows.next()) {
+            log.info("Фильм не найден");
+            throw new FilmNotFoundException(String.format(
+                    "Фильм %s не найден", id));
+        }
+        // удаление фильма из лайков
+        String sglQuery2 = "delete from USER_LIKED_FILM where FILM_ID=?";
+        jdbcTemplate.update(sglQuery2, id);
+        // удаление фильма из таблици FILM_GENRE
+        String sglQuery3 = "delete from FILM_GENRE where FILM_ID=?";
+        jdbcTemplate.update(sglQuery3, id);
+        // удаление фильма из таблици FILM_MPA
+        String sglQuery4 = "delete from FILM_MPA where FILM_ID=?";
+        jdbcTemplate.update(sglQuery4, id);
+        //удаление фильма
+        String sglQuery = "delete from FILMS where FILM_ID=?";
+        jdbcTemplate.update(sglQuery, id);
     }
 
     public List<Film> getListOfPopularFilms(int count) {

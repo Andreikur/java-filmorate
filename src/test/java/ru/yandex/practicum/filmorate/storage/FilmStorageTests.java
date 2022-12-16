@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -9,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.dao.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.dao.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -27,14 +29,38 @@ public class FilmStorageTests {
 
     private final UserDbStorage userDbStorage;
 
-    private final Film film = Film.builder()
-            .name("filmName1")
-            .description("description1")
-            .releaseDate(LocalDate.of(2000, 12, 30))
-            .duration(110)
-            .mpa(new Mpa(1, "G"))
-            .genres(null)
-            .build();
+    private Film film;
+    private Film filmForUpdate;
+    private User user;
+
+    @BeforeEach
+    public void initEach(){
+        film = Film.builder()
+                .name("filmName1")
+                .description("description1")
+                .releaseDate(LocalDate.of(2000, 12, 30))
+                .duration(110)
+                .mpa(new Mpa(1, "G"))
+                .genres(null)
+                .build();
+
+        filmForUpdate = Film.builder()
+                .id(999)
+                .name("film2")
+                .description(("description2"))
+                .releaseDate(LocalDate.of(2021, 3, 5))
+                .mpa(new Mpa(1, "G"))
+                .genres(null)
+                .build();
+
+        user = User.builder()
+                .id(1)
+                .email("mail1@yandex.ru")
+                .login("login1")
+                .name("user1")
+                .birthday(LocalDate.of(1981, 11, 16))
+                .build();
+    }
 
     @Test
     void addFilmTest() throws ValidationException {
@@ -65,77 +91,35 @@ public class FilmStorageTests {
     void removeFilmTest() throws ValidationException {
         filmDbStorage.addFilm(film);
         filmDbStorage.removeFilm(film.getId());
-        assertThat(film).hasFieldOrPropertyWithValue("id", film.getId());
+        Assertions.assertThatThrownBy(() -> filmDbStorage.getFilm(film.getId()))
+                .isInstanceOf(FilmNotFoundException.class);
     }
 
     @Test
     void updateFilmNotFoundTest() {
-        Film filmForUpdate = Film.builder()
-                .id(999)
-                .name("film2")
-                .description(("description2"))
-                .releaseDate(LocalDate.of(2021, 3, 5))
-                .mpa(new Mpa(1, "G"))
-                .genres(null)
-                .build();
         Assertions.assertThatThrownBy(() -> filmDbStorage.updateFilm(filmForUpdate))
                 .isInstanceOf(FilmNotFoundException.class);
     }
 
     @Test
     void addLikeFilmTest() throws ValidationException {
-        User user = User.builder()
-                .id(1)
-                .email("mail1@yandex.ru")
-                .login("login1")
-                .name("user1")
-                .birthday(LocalDate.of(1981, 11, 16))
-                .build();
-
-        Film popularFilm = Film.builder()
-                .name("testFilm")
-                .description("description3")
-                .releaseDate(LocalDate.of(2020, 12, 30))
-                .duration(110)
-                .mpa(new Mpa(1, "G"))
-                .genres(null)
-                .build();
-
         userDbStorage.addUser(user);
-        filmDbStorage.addFilm(popularFilm);
-        filmDbStorage.addLike(popularFilm.getId(), user.getId());
-        assertThat(filmDbStorage.getListOfPopularFilms(popularFilm.getId()).isEmpty());
-        assertThat(filmDbStorage.getListOfPopularFilms(popularFilm.getId())).isNotNull();
-        assertThat(filmDbStorage.getListOfPopularFilms(popularFilm.getId()).size() == 2);
+        filmDbStorage.addFilm(film);
+        filmDbStorage.addLike(film.getId(), user.getId());
+        assertThat(filmDbStorage.getListOfPopularFilms(film.getId()).isEmpty());
+        assertThat(filmDbStorage.getListOfPopularFilms(film.getId())).isNotNull();
+        assertThat(filmDbStorage.getListOfPopularFilms(film.getId()).size() == 2);
     }
 
     @Test
     void removeFilmLikeTest() throws ValidationException {
-        User user1 = User.builder()
-                .id(1)
-                .email("mail2@yandex.ru")
-                .login("login2")
-
-                .name("mame2")
-                .birthday(LocalDate.of(2000, 12, 22))
-                .build();
-
-        Film popularFilm = Film.builder()
-                .name("testFilm")
-                .description("description")
-                .releaseDate(LocalDate.of(2020, 12, 30))
-                .duration(110)
-                .mpa(new Mpa(1, "G"))
-                .genres(null)
-                .build();
-
-        userDbStorage.addUser(user1);
-        filmDbStorage.addFilm(popularFilm);
-        filmDbStorage.addFilm(popularFilm);
-        filmDbStorage.addLike(popularFilm.getId(), user1.getId());
-        filmDbStorage.removeLike(popularFilm.getId(), user1.getId());
-        assertThat(filmDbStorage.getListOfPopularFilms(popularFilm.getId()).isEmpty());
-        assertThat(filmDbStorage.getListOfPopularFilms(popularFilm.getId())).isNotNull();
-        assertThat(filmDbStorage.getListOfPopularFilms(popularFilm.getId()).size() == 1);
+        userDbStorage.addUser(user);
+        filmDbStorage.addFilm(film);
+        filmDbStorage.addFilm(film);
+        filmDbStorage.addLike(film.getId(), user.getId());
+        filmDbStorage.removeLike(film.getId(), user.getId());
+        assertThat(filmDbStorage.getListOfPopularFilms(film.getId()).isEmpty());
+        assertThat(filmDbStorage.getListOfPopularFilms(film.getId())).isNotNull();
+        assertThat(filmDbStorage.getListOfPopularFilms(film.getId()).size() == 1);
     }
 }

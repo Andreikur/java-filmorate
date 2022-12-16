@@ -6,10 +6,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
+@Data
 public class UserFriends {
     private int id;
     private int friendsId;
