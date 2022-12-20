@@ -19,7 +19,7 @@ public interface FilmStorage {
 
     //void removeFilm(int id);
 
-    List<Film> getListOfPopularFilms(int count);
+    List<Film> getListOfPopularFilms(int count, int genreId, String year);
 
     void addLike(int id, int userId);
 
