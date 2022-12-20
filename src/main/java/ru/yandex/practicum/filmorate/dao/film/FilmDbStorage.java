@@ -143,16 +143,16 @@ public class FilmDbStorage implements FilmStorage {
         return films.get(0);
     }
 
-    public List<Film> getListOfPopularFilms(int count, int genreId, String year) {
-        List<Film> filmList = new ArrayList<>();
-        if(genreId == 0 & year==null) {
+    public List<Film> getListOfPopularFilms(int count, int genreId, int year) {
+        List<Film> filmList;
+        if(genreId == 0 & year==0) {
             final String sqlQuery = "select * from FILMS " +
                     "left join USER_LIKED_FILM ULF ON FILMS.FILM_ID = ULF.FILM_ID " +
                     "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID " +
                     "order by COUNT(ULF.FILM_ID) " +
                     "DESC LIMIT ?";
             filmList = jdbcTemplate.query(sqlQuery, this::makeFilm, count);
-        } else if (year==null) {
+        } else if (year==0) {
             final String sqlQuery = "select * from FILMS " +
                     "left join USER_LIKED_FILM ULF on FILMS.FILM_ID = ULF.FILM_ID " +
                     "left join FILM_GENRE FG on FILMS.FILM_ID = FG.FILM_ID " +
@@ -165,16 +165,16 @@ public class FilmDbStorage implements FilmStorage {
             final String sqlQuery = "select * from FILMS " +
                     "left join USER_LIKED_FILM ULF on FILMS.FILM_ID = ULF.FILM_ID " +
                     "left join FILM_GENRE FG on FILMS.FILM_ID = FG.FILM_ID " +
-                    "where RELEASE_DATE like '%" + year + "%'" +
-                    "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM ), FG.GENRE_ID" +
+                    "where YEAR(RELEASE_DATE) = ? " +
+                    "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM ), FG.GENRE_ID " +
                     "order by COUNT(ULF.FILM_ID) " +
                     "LIMIT ?";
-            filmList = jdbcTemplate.query(sqlQuery, this::makeFilm, count);
+            filmList = jdbcTemplate.query(sqlQuery, this::makeFilm, year, count);
         } else {
             final String sqlQuery = "select * from FILMS " +
                     "left join USER_LIKED_FILM ULF on FILMS.FILM_ID = ULF.FILM_ID " +
                     "left join FILM_GENRE FG on FILMS.FILM_ID = FG.FILM_ID " +
-                    "where RELEASE_DATE like ? and FG.GENRE_ID=?" +
+                    "where YEAR(RELEASE_DATE) = ? and FG.GENRE_ID=?" +
                     "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM )  " +
                     "order by COUNT(ULF.FILM_ID) " +
                     "LIMIT ?";
