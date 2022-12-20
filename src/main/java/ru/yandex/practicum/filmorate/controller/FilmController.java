@@ -61,12 +61,15 @@ public class FilmController {
 
     //возрат списка первых по количеству лайков N фильмов
     @GetMapping("/popular")
-    public List<Film> getListOfPopularFilms(@RequestParam(required = false) Integer count, Integer genreId, String year) {
+    public List<Film> getListOfPopularFilms(@RequestParam(required = false) Integer count, Integer genreId, Integer year) {
         if (count == null) {
             count = 10;
         }
         if (genreId == null) {
             genreId = 0;
+        }
+        if (year == null) {
+            year = 0;
         }
         return filmService.getListOfPopularFilms(count, genreId, year);
     }
