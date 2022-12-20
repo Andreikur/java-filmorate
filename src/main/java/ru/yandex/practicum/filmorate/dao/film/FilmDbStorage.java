@@ -118,14 +118,16 @@ public class FilmDbStorage implements FilmStorage {
         return films.get(0);
     }
 
+    @Override
     public List<Film> getListOfPopularFilms(int count) {
 
         final String sqlQuery = "select * from FILMS " +
                 "left join USER_LIKED_FILM ULF ON FILMS.FILM_ID = ULF.FILM_ID " +
-                "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM ) " +
+                "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID " +
                 "order by COUNT(ULF.FILM_ID) " +
                 "DESC LIMIT ?";
         return jdbcTemplate.query(sqlQuery, this::makeFilm, count);
+
     }
 
     public void addLike(int filmId, int userId) {
