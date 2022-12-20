@@ -178,4 +178,21 @@ public class UserDbStorage implements UserStorage {
                 rs.getDate("BIRTHDAY").toLocalDate()
         );
     }
+
+    @Override
+    public void removeUser(int id) {
+        final String checkQuery = "select * from USERS where USER_ID=?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, id);
+        if (!userRows.next()) {
+            log.info("Пользователь не найден");
+            throw new UserNotFoundException(String.format(
+                    "Пользователь %s не найден", id));
+        }
+        //удаление пользователя
+        String sglQuery = "delete from USERS where USER_ID=?";
+        jdbcTemplate.update(sglQuery, id);
+        // удаление пользователя из списка друзей
+        String sglQuery2 = "delete from USER_FRIENDS where USER_ID=? or FRIEND_ID=?";
+        jdbcTemplate.update(sglQuery2, id, id);
+    }
 }
