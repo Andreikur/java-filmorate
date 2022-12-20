@@ -42,10 +42,7 @@ public class UserController {
     }
 
     //удалить пользователя
-    @DeleteMapping("/{id}")
-    public void removeUser(@PathVariable("id") Integer id) {
-        userService.getUserStorage().removeUser(id);
-    }
+
 
     //добавления в друзья
     @PutMapping("/{id}/friends/{friendId}")

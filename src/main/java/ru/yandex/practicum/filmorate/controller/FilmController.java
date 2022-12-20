@@ -42,10 +42,7 @@ public class FilmController {
     }
 
     //Удаление фильма
-    @DeleteMapping("/{id}")
-    public void removeFilm(@PathVariable("id") Integer id) {
-        filmService.getFilmStorage().removeFilm(id);
-    }
+
 
     //пользователь ставит лайк фильму
     @PutMapping("/{id}/like/{userId}")
