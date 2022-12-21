@@ -5,8 +5,10 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.validations.Validations;
@@ -168,6 +170,68 @@ public class UserDbStorage implements UserStorage {
                 " join USER_FRIENDS as UF2 on UF1.FRIEND_ID = UF2.FRIEND_ID " +
                 "where UF1.USER_ID=? and UF2.USER_ID=?";
         return jdbcTemplate.query(sqlQuery, UserDbStorage::makeUser, id, otherId);
+    }
+
+    //рекомендации фильмов другому пользователю по интересам данного пользователя
+    @Override
+    public List<Film> recommendations(int id){
+        final String checkQuery = "select * from USERS where USER_ID=?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, id);
+        if (!userRows.next()) {
+            log.info("Пользователь с id %s отсутствует в базе", id);
+            throw new UserNotFoundException(String.format(
+                    "Пользователь %s не найден", id));
+        }
+        List<Film> filmList = new ArrayList<>();
+        final String sqlQuery = "select ULF.USER_ID " +
+                "from USER_LIKED_FILM ULF " +
+                "where ulf.FILM_ID in " +
+                "                     (select FILM_ID " +
+                "                      from USER_LIKED_FILM ulf1 " +
+                "                      where USER_ID = ?) and ulf.USER_ID <> ?" +
+                "group by ULF.USER_ID " +
+                "order by COUNT(ULF.FILM_ID) " +
+                "limit 1";
+        final List<Integer> userIdList = jdbcTemplate.query(sqlQuery, UserDbStorage::makeUserIdRecommendations, id, id);
+        if(userIdList.isEmpty()){
+            log.info("Пересечений по лайкам нет");
+        } else {
+            int userId = userIdList.get(0);
+            //Сравнение предпочтений
+            FilmDbStorage filmDbStorage = new FilmDbStorage(jdbcTemplate);
+            final String FilmsSqlQuery1 = "select FILM_ID " +
+                    "from USER_LIKED_FILM " +
+                    "where USER_ID=?";
+            List<Integer> filmListUser1 = jdbcTemplate.query(FilmsSqlQuery1, UserDbStorage::makeFilmIdRecommendations, id);
+            final String FilmsSqlQuery2 = "select FILM_ID " +
+                    "from USER_LIKED_FILM " +
+                    "where USER_ID=?";
+            List<Integer> filmListUser2 = jdbcTemplate.query(FilmsSqlQuery2, UserDbStorage::makeFilmIdRecommendations, userId);
+            filmListUser2.removeAll(filmListUser1);
+            for (int filId : filmListUser2) {
+                filmList.add(filmDbStorage.getFilm(filId));
+            }
+        }
+        return filmList;
+    }
+
+    static Integer makeUserIdRecommendations(ResultSet rs, int rowNum) throws SQLException {
+        Integer userId = rs.getInt("USER_ID");
+        return userId;
+    }
+
+    static Integer makeFilmIdRecommendations(ResultSet rs, int rowNum) throws SQLException {
+        Integer userId = rs.getInt("FILM_ID");
+        return userId;
+    }
+
+    static User makeUsersLikedFilm(ResultSet rs, int rowNum) throws SQLException {
+        return new User(rs.getInt("USER_ID"),
+                rs.getString("EMAIL"),
+                rs.getString("LOGIN"),
+                rs.getString("USER_NAME"),
+                rs.getDate("BIRTHDAY").toLocalDate()
+        );
     }
 
     static User makeUser(ResultSet rs, int rowNum) throws SQLException {
