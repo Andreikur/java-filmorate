@@ -174,11 +174,11 @@ public class UserDbStorage implements UserStorage {
 
     //рекомендации фильмов другому пользователю по интересам данного пользователя
     @Override
-    public List<Film> recommendations(int id){
+    public List<Film> recommendations(int id) {
         final String checkQuery = "select * from USERS where USER_ID=?";
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, id);
         if (!userRows.next()) {
-            log.info("Пользователь с id %s отсутствует в базе", id);
+            log.info("Пользователь с id %s отсутствует в базе");
             throw new UserNotFoundException(String.format(
                     "Пользователь %s не найден", id));
         }
@@ -193,7 +193,7 @@ public class UserDbStorage implements UserStorage {
                 "order by COUNT(ULF.FILM_ID) " +
                 "limit 1";
         final List<Integer> userIdList = jdbcTemplate.query(sqlQuery, UserDbStorage::makeUserIdRecommendations, id, id);
-        if(userIdList.isEmpty()){
+        if (userIdList.isEmpty()) {
             log.info("Пересечений по лайкам нет");
         } else {
             int userId = userIdList.get(0);
