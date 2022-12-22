@@ -77,3 +77,20 @@ create table IF NOT EXISTS FILM_GENRE
     constraint FILM_GENRE_GENRE_GENRE_ID_FK
         foreign key (GENRE_ID) references GENRE
 );
+create table  IF NOT EXISTS DIRECTORS
+(
+    DIRECTOR_ID         INTEGER auto_increment
+        primary key
+        unique,
+    DIRECTOR_NAME       CHARACTER VARYING(20) not null
+);
+
+create table IF NOT EXISTS FILM_DIRECTORS
+(
+    FILM_ID     INTEGER,
+    DIRECTOR_ID INTEGER,
+    constraint FILM_DIRECTORS_DIRECTORS_DIRECTOR_ID_FK
+        foreign key (DIRECTOR_ID) references DIRECTORS,
+    constraint FILM_DIRECTORS_FILMS_FILM_ID_FK
+        foreign key (FILM_ID) references FILMS
+);
