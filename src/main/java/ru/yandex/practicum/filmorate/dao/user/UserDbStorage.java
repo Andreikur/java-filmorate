@@ -172,7 +172,11 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(sqlQuery, UserDbStorage::makeUser, id, otherId);
     }
 
-    //рекомендации фильмов другому пользователю по интересам данного пользователя
+    /**
+     * Рекомендации фильмов другому пользователю по интересам данного пользователя
+     * @param id - идентификатор пользователя
+     * @exception UserNotFoundException в случае, если пользователь не найден
+     * */
     @Override
     public List<Film> recommendations(int id) {
         final String checkQuery = "select * from USERS where USER_ID=?";
