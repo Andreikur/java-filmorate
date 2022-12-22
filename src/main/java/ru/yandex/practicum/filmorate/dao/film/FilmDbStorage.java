@@ -6,6 +6,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -19,7 +20,7 @@ import java.util.List;
 
 @Component
 @Slf4j
-public class FilmDbStorage implements FilmStorage, DirectorStorage {
+public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
@@ -56,8 +57,17 @@ public class FilmDbStorage implements FilmStorage, DirectorStorage {
                 jdbcTemplate.update(genresSqlQuery, film.getId(), genre.getId());
             }
         }
+
+        final String directorSqlQuery = "insert into FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) VALUES (?, ?)";
+        if (film.getDirectors() != null) {
+            for (Director director : film.getDirectors()) {
+                jdbcTemplate.update(directorSqlQuery, film.getId(), director.getId());
+            }
+        }
+
         film.setMpa(findMpa(film.getId()));
         film.setGenres(findGenres(film.getId()));
+        film.setDirectors(findDirector(film.getId()));
         return film;
     }
 
@@ -82,12 +92,26 @@ public class FilmDbStorage implements FilmStorage, DirectorStorage {
         jdbcTemplate.update(sglQueryGenreRemove, film.getId());
 
         final String sglQueryGenre = "insert into FILM_GENRE (FILM_ID, GENRE_ID) values ( ?, ?)";
-        final String checkQueryDuplicate = "select * from FILM_GENRE where FILM_ID=? and GENRE_ID=?";
+        final String checkQueryDuplicateGenre = "select * from FILM_GENRE where FILM_ID=? and GENRE_ID=?";
         if (film.getGenres() != null) {
             for (Genre genre : film.getGenres()) {
-                SqlRowSet genreRowsDuplicate = jdbcTemplate.queryForRowSet(checkQueryDuplicate, film.getId(), genre.getId());
-                if (!genreRowsDuplicate.next()) {
+                SqlRowSet genreRowsDuplicateGenre = jdbcTemplate.queryForRowSet(checkQueryDuplicateGenre, film.getId(), genre.getId());
+                if (!genreRowsDuplicateGenre.next()) {
                     jdbcTemplate.update(sglQueryGenre, film.getId(), genre.getId());
+                }
+            }
+        }
+
+        final String sglQueryGenreRemoveDirector = "delete from FILM_DIRECTORS where FILM_ID=?";
+        jdbcTemplate.update(sglQueryGenreRemoveDirector, film.getId());
+
+        final String sglQueryDirector = "insert into FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) values ( ?, ?)";
+        final String checkQueryDuplicateDirector = "select * from FILM_DIRECTORS where FILM_ID=? and DIRECTOR_ID=?";
+        if (film.getDirectors() != null) {
+            for (Director director : film.getDirectors()) {
+                SqlRowSet genreRowsDuplicateDirector = jdbcTemplate.queryForRowSet(checkQueryDuplicateDirector, film.getId(), director.getId());
+                if (!genreRowsDuplicateDirector.next()) {
+                    jdbcTemplate.update(sglQueryDirector, film.getId(), director.getId());
                 }
             }
         }
@@ -233,6 +257,13 @@ public class FilmDbStorage implements FilmStorage, DirectorStorage {
         List<Genre> genreList = jdbcTemplate.query(sqlQueryGenre, this::makeGenre, film.getId());
         film.setGenres(genreList);
 
+        final String sqlQueryDirector = "select * " +
+                "from DIRECTORS " +
+                "left join FILM_DIRECTORS as FD on DIRECTORS.DIRECTOR_ID= FD.DIRECTOR_ID " +
+                "where FD.FILM_ID = ?";
+        List<Director> directorList = jdbcTemplate.query(sqlQueryDirector, this::makeDirector, film.getId());
+        film.setDirectors(directorList);
+
         return film;
     }
 
@@ -245,6 +276,12 @@ public class FilmDbStorage implements FilmStorage, DirectorStorage {
     private Genre makeGenre(ResultSet rs, int rowNum) throws SQLException {
         return new Genre(rs.getInt("GENRE_ID"),
                 rs.getString("GENRE_NAME")
+        );
+    }
+
+    private Director makeDirector(ResultSet rs, int rowNum) throws SQLException {
+        return new Director(rs.getInt("DIRECTOR_ID"),
+                rs.getString("DIRECTOR_NAME")
         );
     }
 
@@ -262,6 +299,14 @@ public class FilmDbStorage implements FilmStorage, DirectorStorage {
                 "left join FILM_GENRE FG on GENRE.GENRE_ID = FG.GENRE_ID " +
                 "where FG.FILM_ID = ?";
         return jdbcTemplate.query(genresSqlQuery, this::makeGenre, id);
+    }
+
+    private List<Director> findDirector(int id) {
+        final String genresSqlQuery = "select * " +
+                "from DIRECTORS " +
+                "left join FILM_DIRECTORS FD on DIRECTORS.DIRECTOR_ID = FD.DIRECTOR_ID " +
+                "where FD.FILM_ID = ?";
+        return jdbcTemplate.query(genresSqlQuery, this::makeDirector, id);
     }
 
     @Override
@@ -285,88 +330,5 @@ public class FilmDbStorage implements FilmStorage, DirectorStorage {
         //удаление фильма
         String sglQuery = "delete from FILMS where FILM_ID=?";
         jdbcTemplate.update(sglQuery, id);
-    }
-
-    public Director addDirector(Director director){
-        String sglQuery = "insert into DIRECTORS (DIRECTOR_NAME) values (?)";
-        KeyHolder keyHolder1 = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(con -> {
-            PreparedStatement stmt = con.prepareStatement(sglQuery, new String[]{"DIRECTOR_ID"});
-            stmt.setString(1, director.getName());
-            return stmt;
-        }, keyHolder1);
-        director.setId(keyHolder1.getKey().intValue());
-        return director;
-    }
-
-    public Director updateDirector(Director director) {
-        final String checkQuery = "select * from DIRECTORS where DIRECTOR_ID=?";
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, director.getId());
-        if (!userRows.next()) {
-            log.info("Режисер не обновлен");
-            throw new FilmNotFoundException(String.format(
-                    "Режисер  %s не найден", director.getName()));
-        }
-        final String sglQuery = "update DIRECTORS set DIRECTOR_NAME=? " +
-                "where DIRECTOR_ID=?";
-        jdbcTemplate.update(sglQuery, director.getName());
-        log.info("Режисер обновлен");
-        director = getDirector(director.getId());
-        return director;
-    }
-
-
-    public List<Director> getAllDirectors() {
-        final String sqlQuery = "select * from DIRECTORS";
-        return jdbcTemplate.query(sqlQuery, this::makeDirector);
-    }
-
-    public Director getDirector(int id){
-        final String checkQuery = "select * from DIRECTORS where DIRECTOR_ID=?";
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, id);
-        if (!userRows.next()) {
-            log.info("Режисер не найден");
-            throw new DirectorNotFoundException(String.format(
-                    "Режисер %s не найден", id));
-        }
-        final List<Director> directors = jdbcTemplate.query(checkQuery, this::makeDirector, id);
-        if (directors.isEmpty()) {
-            log.info("Режисер не получен");
-            return null;
-        }
-        return directors.get(0);
-    }
-
-    public void removeDirector(int id){
-
-        final String checkQuery = "select * from DIRECTORS where DIRECTOR_ID=?";
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(checkQuery, id);
-        if (!filmRows.next()) {
-            log.info("Фильм не найден");
-            throw new FilmNotFoundException(String.format(
-                    "Фильм %s не найден", id));
-        }
-        // удаление фильма из лайков
-        String sglQuery2 = "delete from USER_LIKED_FILM where FILM_ID=?";
-        jdbcTemplate.update(sglQuery2, id);
-        // удаление фильма из таблици FILM_GENRE
-        String sglQuery3 = "delete from FILM_GENRE where FILM_ID=?";
-        jdbcTemplate.update(sglQuery3, id);
-        // удаление фильма из таблици FILM_MPA
-        String sglQuery4 = "delete from FILM_MPA where FILM_ID=?";
-        jdbcTemplate.update(sglQuery4, id);
-        //удаление фильма
-        String sglQuery = "delete from FILMS where FILM_ID=?";
-        jdbcTemplate.update(sglQuery, id);
-
-
-
-    }
-
-    private Director makeDirector(ResultSet rs, int rowNum) throws SQLException {
-        return new Director(rs.getInt("DIRECTOR_ID"),
-                rs.getString("DIRECTOR_NAME")
-        );
     }
 }

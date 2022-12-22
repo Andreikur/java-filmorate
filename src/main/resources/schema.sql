@@ -77,7 +77,7 @@ create table IF NOT EXISTS FILM_GENRE
     constraint FILM_GENRE_GENRE_GENRE_ID_FK
         foreign key (GENRE_ID) references GENRE
 );
-create table  IF NOT EXISTS DIRECTORS
+create table IF NOT EXISTS DIRECTORS
 (
     DIRECTOR_ID         INTEGER auto_increment
         primary key
