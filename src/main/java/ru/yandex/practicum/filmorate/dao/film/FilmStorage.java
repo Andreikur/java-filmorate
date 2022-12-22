@@ -32,4 +32,12 @@ public interface FilmStorage {
     List<Genre> getAllGenre();
 
     Genre getGenre(int id);
+
+    /**
+     * возвращает список общих фильмов 2 пользователей с сортировкой по популярности
+     * @param userId id первого пользователя
+     * @param friendId id друга первого пользователя
+     * @return список объектов типа Film
+     */
+    List<Film> getCommonFilms(int userId, int friendId);
 }
