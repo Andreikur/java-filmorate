@@ -7,6 +7,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -18,7 +19,7 @@ import java.util.List;
 
 @Component
 @Slf4j
-public class FilmDbStorage implements FilmStorage {
+public class FilmDbStorage implements FilmStorage, DirectorStorage {
     private final JdbcTemplate jdbcTemplate;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
@@ -284,5 +285,88 @@ public class FilmDbStorage implements FilmStorage {
         //удаление фильма
         String sglQuery = "delete from FILMS where FILM_ID=?";
         jdbcTemplate.update(sglQuery, id);
+    }
+
+    public Director addDirector(Director director){
+        String sglQuery = "insert into DIRECTORS (DIRECTOR_NAME) values (?)";
+        KeyHolder keyHolder1 = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(con -> {
+            PreparedStatement stmt = con.prepareStatement(sglQuery, new String[]{"DIRECTOR_ID"});
+            stmt.setString(1, director.getName());
+            return stmt;
+        }, keyHolder1);
+        director.setId(keyHolder1.getKey().intValue());
+        return director;
+    }
+
+    public Director updateDirector(Director director) {
+        final String checkQuery = "select * from DIRECTORS where DIRECTOR_ID=?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, director.getId());
+        if (!userRows.next()) {
+            log.info("Режисер не обновлен");
+            throw new FilmNotFoundException(String.format(
+                    "Режисер  %s не найден", director.getName()));
+        }
+        final String sglQuery = "update DIRECTORS set DIRECTOR_NAME=? " +
+                "where DIRECTOR_ID=?";
+        jdbcTemplate.update(sglQuery, director.getName());
+        log.info("Режисер обновлен");
+        director = getDirector(director.getId());
+        return director;
+    }
+
+
+    public List<Director> getAllDirectors() {
+        final String sqlQuery = "select * from DIRECTORS";
+        return jdbcTemplate.query(sqlQuery, this::makeDirector);
+    }
+
+    public Director getDirector(int id){
+        final String checkQuery = "select * from DIRECTORS where DIRECTOR_ID=?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, id);
+        if (!userRows.next()) {
+            log.info("Режисер не найден");
+            throw new DirectorNotFoundException(String.format(
+                    "Режисер %s не найден", id));
+        }
+        final List<Director> directors = jdbcTemplate.query(checkQuery, this::makeDirector, id);
+        if (directors.isEmpty()) {
+            log.info("Режисер не получен");
+            return null;
+        }
+        return directors.get(0);
+    }
+
+    public void removeDirector(int id){
+
+        final String checkQuery = "select * from DIRECTORS where DIRECTOR_ID=?";
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(checkQuery, id);
+        if (!filmRows.next()) {
+            log.info("Фильм не найден");
+            throw new FilmNotFoundException(String.format(
+                    "Фильм %s не найден", id));
+        }
+        // удаление фильма из лайков
+        String sglQuery2 = "delete from USER_LIKED_FILM where FILM_ID=?";
+        jdbcTemplate.update(sglQuery2, id);
+        // удаление фильма из таблици FILM_GENRE
+        String sglQuery3 = "delete from FILM_GENRE where FILM_ID=?";
+        jdbcTemplate.update(sglQuery3, id);
+        // удаление фильма из таблици FILM_MPA
+        String sglQuery4 = "delete from FILM_MPA where FILM_ID=?";
+        jdbcTemplate.update(sglQuery4, id);
+        //удаление фильма
+        String sglQuery = "delete from FILMS where FILM_ID=?";
+        jdbcTemplate.update(sglQuery, id);
+
+
+
+    }
+
+    private Director makeDirector(ResultSet rs, int rowNum) throws SQLException {
+        return new Director(rs.getInt("DIRECTOR_ID"),
+                rs.getString("DIRECTOR_NAME")
+        );
     }
 }
