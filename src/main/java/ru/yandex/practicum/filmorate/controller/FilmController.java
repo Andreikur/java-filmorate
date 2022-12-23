@@ -69,4 +69,10 @@ public class FilmController {
         return filmService.getListOfPopularFilms(count);
     }
 
+    //возрат списка фильмов режиссера, отсортированных по количеству лайков или году выпуска
+    @GetMapping("/director/{directorId}")
+    public List<Film> getDirectorFilmList(@PathVariable int directorId, @RequestParam(required = false) String sortBy) {
+
+        return filmService.getDirectorFilmList(directorId, sortBy);
+    }
 }

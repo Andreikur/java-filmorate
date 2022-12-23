@@ -1,11 +1,13 @@
 package ru.yandex.practicum.filmorate.dao.film;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.relational.core.sql.In;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.director.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.dao.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -17,6 +19,7 @@ import ru.yandex.practicum.filmorate.validations.Validations;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -102,17 +105,13 @@ public class FilmDbStorage implements FilmStorage {
             }
         }
 
-        final String sglQueryGenreRemoveDirector = "delete from FILM_DIRECTORS where FILM_ID=?";
-        jdbcTemplate.update(sglQueryGenreRemoveDirector, film.getId());
+        final String sglQueryRemoveDirector = "delete from FILM_DIRECTORS where FILM_ID=?";
+        jdbcTemplate.update(sglQueryRemoveDirector, film.getId());
 
         final String sglQueryDirector = "insert into FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) values ( ?, ?)";
-        final String checkQueryDuplicateDirector = "select * from FILM_DIRECTORS where FILM_ID=? and DIRECTOR_ID=?";
         if (film.getDirectors() != null) {
             for (Director director : film.getDirectors()) {
-                SqlRowSet genreRowsDuplicateDirector = jdbcTemplate.queryForRowSet(checkQueryDuplicateDirector, film.getId(), director.getId());
-                if (!genreRowsDuplicateDirector.next()) {
-                    jdbcTemplate.update(sglQueryDirector, film.getId(), director.getId());
-                }
+                jdbcTemplate.update(sglQueryDirector, film.getId(), director.getId());
             }
         }
         log.info("Фильм обновлен");
@@ -330,5 +329,43 @@ public class FilmDbStorage implements FilmStorage {
         //удаление фильма
         String sglQuery = "delete from FILMS where FILM_ID=?";
         jdbcTemplate.update(sglQuery, id);
+    }
+
+    /**
+     * отдать все фильмы определенного режиссёра с сортировкой по дате или по популярности
+     * @param directorId id режиссера
+     * @param sortBy сортировка если year то по дате, иначе по популярности (likes)
+     * @return список объектов типа Film
+     */
+    public List<Film> getDirectorFilmList(int directorId, String sortBy) {
+        //попробуем получить режиссера, если его не существует - будет выброшено DirectorNotFoundException
+        Director director = new DirectorDbStorage(jdbcTemplate).getDirector(directorId);
+
+        //получим список id всех фильмов режиссера
+        String sqlQuery = "SELECT film_id FROM film_directors WHERE director_id = ?";
+        List<Integer> filmIdList = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> rs.getInt("film_id"), directorId);
+
+        if (!filmIdList.isEmpty()) {
+            if (sortBy != null && sortBy.equals("year")) {
+                //сортировка по дате выпуска
+                sqlQuery = "SELECT * " +
+                        "FROM films " +
+                        "WHERE film_id IN (" + filmIdList.stream().map(String::valueOf).collect(Collectors.joining(",")) +") " +
+                        "ORDER BY release_date";
+            }
+            else {
+                //сортировка по убыванию популярности
+                sqlQuery = "SELECT f.*, COUNT(ulf.film_id) as cnt " +
+                        "FROM films AS f LEFT JOIN user_liked_film AS ulf on f.film_id = ulf.film_id " +
+                        "WHERE f.film_id IN (" + filmIdList.stream().map(String::valueOf).collect(Collectors.joining(",")) + ") " +
+                        "GROUP BY f.film_id " +
+                        "ORDER BY cnt DESC";
+            }
+
+            return jdbcTemplate.query(sqlQuery, this::makeFilm);
+        }
+        else {
+            return List.of();
+        }
     }
 }
