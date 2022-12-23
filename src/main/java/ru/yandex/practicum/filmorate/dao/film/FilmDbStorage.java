@@ -1,11 +1,14 @@
 package ru.yandex.practicum.filmorate.dao.film;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.constants.DBStorageConsts;
+import ru.yandex.practicum.filmorate.enums.FilmSearchOptions;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -14,10 +17,14 @@ import ru.yandex.practicum.filmorate.validations.Validations;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @Slf4j
+@Qualifier(DBStorageConsts.QUALIFIER)
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
 
@@ -284,5 +291,27 @@ public class FilmDbStorage implements FilmStorage {
         //удаление фильма
         String sglQuery = "delete from FILMS where FILM_ID=?";
         jdbcTemplate.update(sglQuery, id);
+    }
+
+    @Override
+    public Collection<Film> getSortedFilmFromSearch(String query, Set<FilmSearchOptions> params) {
+        List<String> filterExpressions = new ArrayList<>();
+        for (FilmSearchOptions param: params) {
+            switch (param) {
+                case NAME:
+                    filterExpressions.add("lower(f.FILM_NAME) like lower('%" + query + "%') ");
+                    break;
+                case DESCRIPTION:
+                    filterExpressions.add("lower(f.DESCRIPTION) like lower('%" + query + "%') ");
+                    break;
+            }
+        }
+
+        String sql = "select distinct f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, " +
+                "from FILMS f " +
+                "where " + String.join(" or ", filterExpressions) + " " +
+                "group by f.FILM_ID " +
+                "order by f.FILM_NAME desc";
+        return jdbcTemplate.query(sql, this::makeFilm);
     }
 }
