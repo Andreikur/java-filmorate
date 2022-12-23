@@ -69,5 +69,4 @@ public class FilmController {
         return filmService.getListOfPopularFilms(count);
     }
 
-
 }
