@@ -32,4 +32,6 @@ public interface FilmStorage {
     List<Genre> getAllGenre();
 
     Genre getGenre(int id);
+
+    List<Film> getDirectorFilmList(int directorId, String sortBy);
 }
