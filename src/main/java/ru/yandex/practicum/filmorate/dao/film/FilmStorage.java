@@ -40,4 +40,6 @@ public interface FilmStorage {
      * @return список объектов типа Film
      */
     List<Film> getCommonFilms(int userId, int friendId);
+
+    List<Film> getDirectorFilmList(int directorId, String sortBy);
 }

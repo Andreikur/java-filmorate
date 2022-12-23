@@ -17,12 +17,13 @@ public class Film {
     private String name;
     @Size(max = 200)
     private String description;
-    @Past()
+    //@Past()
     private LocalDate releaseDate;
     @Positive
     private int duration;
     private Mpa mpa;
     private List<Genre> genres;
+    private List<Director> directors;
 
     public Film(int id, String name, String description, LocalDate releaseDate, int duration) {
         this.id = id;

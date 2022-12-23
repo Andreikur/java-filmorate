@@ -33,6 +33,9 @@ public class FilmService {
 
             return filmStorage.getListOfPopularFilms(count);
     }
+    public List<Film> getDirectorFilmList(int directorId, String sortBy) {
+        return filmStorage.getDirectorFilmList(directorId, sortBy);
+    }
 
     public FilmStorage getFilmStorage() {
         return filmStorage;
