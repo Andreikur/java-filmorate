@@ -300,7 +300,7 @@ public class FilmDbStorage implements FilmStorage {
         List<Integer> commonFilmsIdList = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> rs.getInt("film_id"), userId, friendId);
 
         if (!commonFilmsIdList.isEmpty()) {
-            sqlQuery = "SELECT f.*, COUNT(1) AS cnt " +
+            sqlQuery = "SELECT f.*, COUNT(ulf.film_id) AS cnt " +
                     "FROM films AS f LEFT JOIN user_liked_film AS ulf ON f.film_id = ulf.film_id " +
                     "WHERE f.film_id IN (" + commonFilmsIdList.stream().map(String::valueOf).collect(Collectors.joining(",")) + ") " +
                     "GROUP BY f.film_id " +
