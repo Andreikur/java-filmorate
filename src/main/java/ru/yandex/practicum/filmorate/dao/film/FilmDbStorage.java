@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-//@Qualifier(DBStorageConsts.QUALIFIER)
+@Qualifier(DBStorageConsts.QUALIFIER)
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
 
