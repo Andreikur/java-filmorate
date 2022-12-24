@@ -6,9 +6,12 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.SearchService;
 
 import javax.validation.Valid;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @RequestMapping(value = "/films")
@@ -16,6 +19,7 @@ import java.util.List;
 public class FilmController {
 
     private final FilmService filmService;
+    private final SearchService searchService;
 
     //Добавляем фильм
     @PostMapping
@@ -74,5 +78,11 @@ public class FilmController {
     public List<Film> getDirectorFilmList(@PathVariable int directorId, @RequestParam(required = false) String sortBy) {
 
         return filmService.getDirectorFilmList(directorId, sortBy);
+    }
+
+    //поиск фильмов по названию (name) или описанию (description)
+    @GetMapping({"/search"})
+    public Collection<Film> filmSearch(@RequestParam String query, @RequestParam Set<String> by) {
+        return searchService.filmSearch(query, by);
     }
 }

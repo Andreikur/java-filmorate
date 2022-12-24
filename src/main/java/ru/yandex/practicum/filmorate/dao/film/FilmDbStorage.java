@@ -1,14 +1,17 @@
 package ru.yandex.practicum.filmorate.dao.film;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.relational.core.sql.In;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.constants.DBStorageConsts;
 import ru.yandex.practicum.filmorate.dao.director.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.dao.director.DirectorStorage;
+import ru.yandex.practicum.filmorate.enums.FilmSearchOptions;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -18,11 +21,15 @@ import ru.yandex.practicum.filmorate.validations.Validations;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 @Slf4j
+@Qualifier(DBStorageConsts.QUALIFIER)
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
 
@@ -367,5 +374,39 @@ public class FilmDbStorage implements FilmStorage {
         else {
             return List.of();
         }
+    }
+
+    /**
+     * Возвращает коллекцию фильмов, отсортированную по названию фильмов
+     * при поисковом запросе с параметрами
+     * @param query - подстрока, которую необходимо найти (без учёта регистра)
+     * @param params - ключи, задающие таблицы, в которых необходимо производить поиск
+     * */
+    @Override
+    public Collection<Film> getSortedFilmFromSearch(String query, Set<FilmSearchOptions> params) {
+        String directorsJoin = "";
+        List<String> filterExpressions = new ArrayList<>();
+        for (FilmSearchOptions param: params) {
+            switch (param) {
+                case TITLE:
+                    filterExpressions.add("lower(f.FILM_NAME) like lower('%" + query + "%') ");
+                    break;
+                case DESCRIPTION:
+                    filterExpressions.add("lower(f.DESCRIPTION) like lower('%" + query + "%') ");
+                    break;
+                case DIRECTOR:
+                    filterExpressions.add("lower(ds.DIRECTOR_NAME) like lower('%" + query + "%') ");
+                    directorsJoin += "left outer join FILM_DIRECTORS d on f.FILM_ID = d.FILM_ID " +
+                            "left outer join DIRECTORS ds on d.DIRECTOR_ID = ds.DIRECTOR_ID ";
+                    break;
+            }
+        }
+
+        String sql = "select distinct f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, " +
+                "from FILMS f " +
+                directorsJoin + "where " + String.join(" or ", filterExpressions) + " " +
+                "group by f.FILM_ID " +
+                "order by f.FILM_NAME desc";
+        return jdbcTemplate.query(sql, this::makeFilm);
     }
 }
