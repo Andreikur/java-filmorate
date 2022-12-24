@@ -5,6 +5,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.event.EventStorage;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -16,13 +17,18 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.util.*;
 
+import static ru.yandex.practicum.filmorate.model.EventEnum.OperationType.ADD;
+import static ru.yandex.practicum.filmorate.model.EventEnum.OperationType.REMOVE;
+
 @Component
 @Slf4j
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final EventStorage eventStorage;
 
-    public UserDbStorage(JdbcTemplate jdbcTemplate) {
+    public UserDbStorage(JdbcTemplate jdbcTemplate, EventStorage eventStorage) {
         this.jdbcTemplate = jdbcTemplate;
+        this.eventStorage = eventStorage;
     }
 
     @Override
@@ -111,6 +117,7 @@ public class UserDbStorage implements UserStorage {
         } else {
             jdbcTemplate.update(sglQuery2, true, id, friendId);
         }
+        eventStorage.addFriend(id, ADD, friendId);
         log.info("Пользователи подружились");
     }
 
@@ -128,6 +135,7 @@ public class UserDbStorage implements UserStorage {
             throw new UserNotFoundException(String.format("Пользователь %s не найден", friendId));
         }
         final String sqlQuery = "delete from USER_FRIENDS where USER_ID=? and FRIEND_ID=?";
+        eventStorage.addFriend(id,REMOVE, friendId);
         jdbcTemplate.update(sqlQuery, id, friendId);
     }
 
