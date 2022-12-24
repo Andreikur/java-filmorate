@@ -339,7 +339,34 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     /**
-     * отдать все фильмы определенного режиссёра с сортировкой по дате или по популярности
+     * возвращает список общих фильмов 2 пользователей с сортировкой по популярности
+     * @param userId id первого пользователя
+     * @param friendId id друга первого пользователя
+     * @return список объектов типа Film
+     */
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String sqlQuery = "SELECT film_id FROM user_liked_film WHERE user_id = ? " +
+                    "AND film_id IN (SELECT film_id FROM user_liked_film WHERE user_id = ?)";
+        List<Integer> commonFilmsIdList = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> rs.getInt("film_id"), userId, friendId);
+
+        if (!commonFilmsIdList.isEmpty()) {
+            sqlQuery = "SELECT f.*, COUNT(ulf.film_id) AS cnt " +
+                    "FROM films AS f LEFT JOIN user_liked_film AS ulf ON f.film_id = ulf.film_id " +
+                    "WHERE f.film_id IN (" + commonFilmsIdList.stream().map(String::valueOf).collect(Collectors.joining(",")) + ") " +
+                    "GROUP BY f.film_id " +
+                    "ORDER BY cnt DESC";
+
+            List<Film> commonFilmsList = jdbcTemplate.query(sqlQuery, this::makeFilm);
+
+            return commonFilmsList;
+        }
+        else {
+            return List.of();
+        }
+    }
+
+     /** отдать все фильмы определенного режиссёра с сортировкой по дате или по популярности
      * @param directorId id режиссера
      * @param sortBy сортировка если year то по дате, иначе по популярности (likes)
      * @return список объектов типа Film

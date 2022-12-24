@@ -36,6 +36,14 @@ public interface FilmStorage {
 
     Genre getGenre(int id);
 
+    /**
+     * возвращает список общих фильмов 2 пользователей с сортировкой по популярности
+     * @param userId id первого пользователя
+     * @param friendId id друга первого пользователя
+     * @return список объектов типа Film
+     */
+    List<Film> getCommonFilms(int userId, int friendId);
+
     List<Film> getDirectorFilmList(int directorId, String sortBy);
 
     Collection<Film> getSortedFilmFromSearch(String query, Set<FilmSearchOptions> params);
