@@ -77,6 +77,31 @@ create table IF NOT EXISTS FILM_GENRE
     constraint FILM_GENRE_GENRE_GENRE_ID_FK
         foreign key (GENRE_ID) references GENRE
 );
+
+/* таблица для хранения отзывов к фильмам */
+CREATE TABLE IF NOT EXISTS reviews (
+    review_id INTEGER NOT NULL AUTO_INCREMENT,
+    content VARCHAR NOT NULL,
+    is_positive BOOLEAN NOT NULL,
+    user_id INTEGER NOT NULL,       /* пользователь - автор отзыва */
+    film_id INTEGER NOT NULL,
+    useful INTEGER NOT NULL DEFAULT 0,        /* рейтинг отзыва */
+    CONSTRAINT reviews_pk PRIMARY KEY (review_id),
+    CONSTRAINT reviews_fk_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    CONSTRAINT reviews_fk2_film FOREIGN KEY (film_id) REFERENCES films(film_id) ON DELETE CASCADE
+);
+
+/* таблица для хранения информации о лайках/дизлайках отзывов и для расчета рейтинга отзыва */
+/* также служит для предотвращения накрутки рейтинга отзыва: один пользователь сможет поставить одному отзыву только одну оценку */
+CREATE TABLE IF NOT EXISTS reviews_likes (
+       review_id INTEGER NOT NULL,
+       user_id INTEGER NOT NULL,    /* пользователь, поставивший оценку отзыву */
+       like_value TINYINT NOT NULL, /* будет +1 для положительной оценки отзыва и -1 для отрицательной */
+       CONSTRAINT reviews_likes_pk PRIMARY KEY (review_id, user_id),
+       CONSTRAINT reviews_likes_fk1_review FOREIGN KEY (review_id) REFERENCES reviews(review_id) ON DELETE CASCADE,
+       CONSTRAINT reviews_likes_fk2_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
 create table IF NOT EXISTS DIRECTORS
 (
     DIRECTOR_ID         INTEGER auto_increment
@@ -94,3 +119,4 @@ create table IF NOT EXISTS FILM_DIRECTORS
     constraint FILM_DIRECTORS_FILMS_FILM_ID_FK
         foreign key (FILM_ID) references FILMS
 );
+

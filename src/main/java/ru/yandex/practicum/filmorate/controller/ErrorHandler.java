@@ -44,6 +44,12 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleReviewNotFoundException(final ReviewNotFoundException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleGenreNotFoundException(final DirectorNotFoundException e) {
         return new ErrorResponse(String.format("Режисер отсутствует отсутствует"));
     }
