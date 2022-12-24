@@ -1,14 +1,17 @@
 package ru.yandex.practicum.filmorate.dao.film;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.relational.core.sql.In;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.constants.DBStorageConsts;
 import ru.yandex.practicum.filmorate.dao.director.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.dao.director.DirectorStorage;
+import ru.yandex.practicum.filmorate.enums.FilmSearchOptions;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -19,11 +22,14 @@ import ru.yandex.practicum.filmorate.validations.Validations;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 @Slf4j
+@Qualifier(DBStorageConsts.QUALIFIER)
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
 
@@ -143,44 +149,16 @@ public class FilmDbStorage implements FilmStorage {
         return films.get(0);
     }
 
-    public List<Film> getListOfPopularFilms(int count, int genreId, int year) {
-        List<Film> filmList;
-        if(genreId == 0 & year==0) {
-            final String sqlQuery = "select * from FILMS " +
-                    "left join USER_LIKED_FILM ULF ON FILMS.FILM_ID = ULF.FILM_ID " +
-                    "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID " +
-                    "order by COUNT(ULF.FILM_ID) " +
-                    "DESC LIMIT ?";
-            filmList = jdbcTemplate.query(sqlQuery, this::makeFilm, count);
-        } else if (year==0) {
-            final String sqlQuery = "select * from FILMS " +
-                    "left join USER_LIKED_FILM ULF on FILMS.FILM_ID = ULF.FILM_ID " +
-                    "left join FILM_GENRE FG on FILMS.FILM_ID = FG.FILM_ID " +
-                    "where FG.GENRE_ID=?" +
-                    "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM )  " +
-                    "order by COUNT(ULF.FILM_ID) " +
-                    "LIMIT ?";
-            filmList = jdbcTemplate.query(sqlQuery, this::makeFilm, genreId, count);
-        } else if (genreId == 0) {
-            final String sqlQuery = "select * from FILMS " +
-                    "left join USER_LIKED_FILM ULF on FILMS.FILM_ID = ULF.FILM_ID " +
-                    "left join FILM_GENRE FG on FILMS.FILM_ID = FG.FILM_ID " +
-                    "where YEAR(RELEASE_DATE) = ? " +
-                    "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM ), FG.GENRE_ID " +
-                    "order by COUNT(ULF.FILM_ID) " +
-                    "LIMIT ?";
-            filmList = jdbcTemplate.query(sqlQuery, this::makeFilm, year, count);
-        } else {
-            final String sqlQuery = "select * from FILMS " +
-                    "left join USER_LIKED_FILM ULF on FILMS.FILM_ID = ULF.FILM_ID " +
-                    "left join FILM_GENRE FG on FILMS.FILM_ID = FG.FILM_ID " +
-                    "where YEAR(RELEASE_DATE) = ? and FG.GENRE_ID=?" +
-                    "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM )  " +
-                    "order by COUNT(ULF.FILM_ID) " +
-                    "LIMIT ?";
-            filmList = jdbcTemplate.query(sqlQuery, this::makeFilm, year, genreId, count);
-        }
-        return filmList;
+    @Override
+    public List<Film> getListOfPopularFilms(int count) {
+
+        final String sqlQuery = "select * from FILMS " +
+                "left join USER_LIKED_FILM ULF ON FILMS.FILM_ID = ULF.FILM_ID " +
+                "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID " +
+                "order by COUNT(ULF.FILM_ID) " +
+                "DESC LIMIT ?";
+        return jdbcTemplate.query(sqlQuery, this::makeFilm, count);
+
     }
 
     public void addLike(int filmId, int userId) {
@@ -396,5 +374,39 @@ public class FilmDbStorage implements FilmStorage {
         else {
             return List.of();
         }
+    }
+
+    /**
+     * Возвращает коллекцию фильмов, отсортированную по названию фильмов
+     * при поисковом запросе с параметрами
+     * @param query - подстрока, которую необходимо найти (без учёта регистра)
+     * @param params - ключи, задающие таблицы, в которых необходимо производить поиск
+     * */
+    @Override
+    public Collection<Film> getSortedFilmFromSearch(String query, Set<FilmSearchOptions> params) {
+        String directorsJoin = "";
+        List<String> filterExpressions = new ArrayList<>();
+        for (FilmSearchOptions param: params) {
+            switch (param) {
+                case TITLE:
+                    filterExpressions.add("lower(f.FILM_NAME) like lower('%" + query + "%') ");
+                    break;
+                case DESCRIPTION:
+                    filterExpressions.add("lower(f.DESCRIPTION) like lower('%" + query + "%') ");
+                    break;
+                case DIRECTOR:
+                    filterExpressions.add("lower(ds.DIRECTOR_NAME) like lower('%" + query + "%') ");
+                    directorsJoin += "left outer join FILM_DIRECTORS d on f.FILM_ID = d.FILM_ID " +
+                            "left outer join DIRECTORS ds on d.DIRECTOR_ID = ds.DIRECTOR_ID ";
+                    break;
+            }
+        }
+
+        String sql = "select distinct f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, " +
+                "from FILMS f " +
+                directorsJoin + "where " + String.join(" or ", filterExpressions) + " " +
+                "group by f.FILM_ID " +
+                "order by f.FILM_NAME desc";
+        return jdbcTemplate.query(sql, this::makeFilm);
     }
 }
