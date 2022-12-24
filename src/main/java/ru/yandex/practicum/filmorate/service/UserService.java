@@ -2,6 +2,9 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.event.EventStorage;
+import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import org.springframework.web.bind.annotation.PathVariable;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -9,14 +12,17 @@ import ru.yandex.practicum.filmorate.dao.user.UserStorage;
 
 import java.util.*;
 
+
 @Service
 public class UserService {
     private final UserStorage userStorage;
+    private final EventStorage eventStorage;
 
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(UserStorage userStorage, EventStorage eventStorage) {
         this.userStorage = userStorage;
+        this.eventStorage = eventStorage;
     }
 
     //добавить в друзья
@@ -46,5 +52,12 @@ public class UserService {
 
     public UserStorage getUserStorage() {
         return userStorage;
+    }
+
+    public List<Event> event(int id) {
+        if(userStorage.getUser(id)==null){
+            throw new UserNotFoundException(id+" user not found");
+        }
+        return eventStorage.get(id);
     }
 }
