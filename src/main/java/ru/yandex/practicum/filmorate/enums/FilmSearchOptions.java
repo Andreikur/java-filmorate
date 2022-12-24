@@ -2,7 +2,8 @@ package ru.yandex.practicum.filmorate.enums;
 
 public enum FilmSearchOptions {
     DESCRIPTION,
-    NAME;
+    DIRECTOR,
+    TITLE;
 
     static public boolean has(String value) {
         try {

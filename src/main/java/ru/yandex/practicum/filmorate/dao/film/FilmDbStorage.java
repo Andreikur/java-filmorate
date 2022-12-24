@@ -384,21 +384,27 @@ public class FilmDbStorage implements FilmStorage {
      * */
     @Override
     public Collection<Film> getSortedFilmFromSearch(String query, Set<FilmSearchOptions> params) {
+        String directorsJoin = "";
         List<String> filterExpressions = new ArrayList<>();
         for (FilmSearchOptions param: params) {
             switch (param) {
-                case NAME:
+                case TITLE:
                     filterExpressions.add("lower(f.FILM_NAME) like lower('%" + query + "%') ");
                     break;
                 case DESCRIPTION:
                     filterExpressions.add("lower(f.DESCRIPTION) like lower('%" + query + "%') ");
+                    break;
+                case DIRECTOR:
+                    filterExpressions.add("lower(ds.DIRECTOR_NAME) like lower('%" + query + "%') ");
+                    directorsJoin += "left outer join FILM_DIRECTORS d on f.FILM_ID = d.FILM_ID " +
+                            "left outer join DIRECTORS ds on d.DIRECTOR_ID = ds.DIRECTOR_ID ";
                     break;
             }
         }
 
         String sql = "select distinct f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, " +
                 "from FILMS f " +
-                "where " + String.join(" or ", filterExpressions) + " " +
+                directorsJoin + "where " + String.join(" or ", filterExpressions) + " " +
                 "group by f.FILM_ID " +
                 "order by f.FILM_NAME desc";
         return jdbcTemplate.query(sql, this::makeFilm);
