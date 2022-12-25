@@ -150,8 +150,8 @@ public class UserDbStorage implements UserStorage {
             throw new UserNotFoundException(String.format("Пользователь %s не найден", friendId));
         }
         final String sqlQuery = "delete from USER_FRIENDS where USER_ID=? and FRIEND_ID=?";
-        eventStorage.addFriend(id,REMOVE, friendId);
         jdbcTemplate.update(sqlQuery, id, friendId);
+        eventStorage.addFriend(id,REMOVE, friendId);
     }
 
     /**
