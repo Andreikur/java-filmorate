@@ -10,10 +10,12 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.event.EventStorage;
+import ru.yandex.practicum.filmorate.dao.film.FilmStorage;
 import ru.yandex.practicum.filmorate.dao.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ReviewNotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
+import ru.yandex.practicum.filmorate.model.EventEnum.OperationType;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.sql.PreparedStatement;
@@ -29,6 +31,7 @@ public class ReviewDbStorage implements ReviewStorage {
     private final JdbcTemplate jdbcTemplate;
     private final UserDbStorage userDbStorage;
     private final EventStorage eventStorage;
+    private final FilmStorage filmStorage;
 
     /**
      * создание объекта Review из данных БД
@@ -87,6 +90,13 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public Review addReview(Review review) throws UserNotFoundException, FilmNotFoundException{
 
+
+        if(userDbStorage.getUser(review.getUserId())==null){
+            throw new UserNotFoundException("not entity");
+        }
+        if(filmStorage.getFilm(review.getFilmId())==null){
+            throw new FilmNotFoundException("not entity");
+        }
         try {
             String sqlQuery = "INSERT INTO reviews (content, is_positive, user_id, film_id) " +
                     "VALUES (?, ?, ?, ?)";
@@ -103,6 +113,8 @@ public class ReviewDbStorage implements ReviewStorage {
 
             review.setReviewId(keyHolder.getKey().intValue());
             review.setUseful(0);
+            eventStorage.addReview(review.getUserId(), OperationType.ADD, review.getReviewId());
+
 
         } catch (DataIntegrityViolationException e) {
             //при неудачной попытке вставки счетчик автоинкремента все равно увеличивается на 1
@@ -126,6 +138,7 @@ public class ReviewDbStorage implements ReviewStorage {
         }
 
         log.info("Отзыв добавлен: " + review.toString());
+        //eventStorage.addReview(review.getUserId(), OperationType.ADD, review.getFilmId()+1);
         return review;
     }
 
@@ -160,7 +173,7 @@ public class ReviewDbStorage implements ReviewStorage {
             review.setFilmId(existingReview.getFilmId());
             review.setUseful(existingReview.getUseful());
             log.info("Отзыв обновлен: " + review.toString());
-
+            eventStorage.addReview(review.getUserId(), OperationType.UPDATE, review.getReviewId());
             return review;
         } else {
             String message = "Отзыв с id=" + review.getReviewId() + " не найден";
@@ -175,9 +188,13 @@ public class ReviewDbStorage implements ReviewStorage {
      */
     @Override
     public void deleteReview(int reviewId) {
-        String sqlQuery = "DELETE FROM reviews WHERE review_id = ?";
-        jdbcTemplate.update(sqlQuery, reviewId);
-        log.info("Отзыв удалён: id=" + reviewId);
+        Review review = this.getReviewById(reviewId);
+        if (review != null) {
+            eventStorage.addReview(review.getUserId(), OperationType.REMOVE, review.getReviewId());
+            String sqlQuery = "DELETE FROM reviews WHERE review_id = ?";
+            jdbcTemplate.update(sqlQuery, reviewId);
+            log.info("Отзыв удалён: id=" + reviewId);
+        }
     }
 
     /**

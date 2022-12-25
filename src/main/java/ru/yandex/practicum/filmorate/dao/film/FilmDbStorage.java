@@ -6,7 +6,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.event.EventStorage;
 import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.model.EventEnum.OperationType;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -20,9 +22,11 @@ import java.util.List;
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final EventStorage eventStorage;
 
-    public FilmDbStorage(JdbcTemplate jdbcTemplate) {
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, EventStorage eventStorage) {
         this.jdbcTemplate = jdbcTemplate;
+        this.eventStorage = eventStorage;
     }
 
     @Override
@@ -147,6 +151,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         final String sqlQuery = "insert into USER_LIKED_FILM (FILM_ID, USER_ID) VALUES (?, ?)";
         jdbcTemplate.update(sqlQuery, filmId, userId);
+        eventStorage.addLike(userId, OperationType.ADD,filmId);
     }
 
     public void removeLike(int filmId, int userId) {
@@ -166,6 +171,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         final String sqlQuery = "delete from USER_LIKED_FILM where FILM_ID=? and USER_ID=?";
         jdbcTemplate.update(sqlQuery, filmId, userId);
+        eventStorage.addLike(userId, OperationType.REMOVE,filmId);
     }
 
     public List<Mpa> getAllMpa() {
