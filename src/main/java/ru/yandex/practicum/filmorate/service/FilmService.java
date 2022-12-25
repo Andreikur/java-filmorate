@@ -45,6 +45,7 @@ public class FilmService {
         return filmStorage;
     }
 
+
     public List<Film> getCommonFilms(int userId, int friendId) {
         return filmStorage.getCommonFilms(userId, friendId);
     }
