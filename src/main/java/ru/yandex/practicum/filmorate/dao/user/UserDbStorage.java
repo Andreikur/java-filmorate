@@ -5,6 +5,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.event.EventStorage;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -16,13 +17,18 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.util.*;
 
+import static ru.yandex.practicum.filmorate.model.EventEnum.OperationType.ADD;
+import static ru.yandex.practicum.filmorate.model.EventEnum.OperationType.REMOVE;
+
 @Component
 @Slf4j
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final EventStorage eventStorage;
 
-    public UserDbStorage(JdbcTemplate jdbcTemplate) {
+    public UserDbStorage(JdbcTemplate jdbcTemplate, EventStorage eventStorage) {
         this.jdbcTemplate = jdbcTemplate;
+        this.eventStorage = eventStorage;
     }
 
     @Override
@@ -88,23 +94,6 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public void removeUser(int id) {
-        final String checkQuery = "select * from USERS where USER_ID=?";
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, id);
-        if (!userRows.next()) {
-            log.info("Пользователь не найден");
-            throw new UserNotFoundException(String.format(
-                    "Пользователь %s не найден", id));
-        }
-        //удаление пользователя
-        String sglQuery = "delete from USERS where USER_ID=?";
-        jdbcTemplate.update(sglQuery, id);
-        // удаление пользователя из списка друзей
-        String sglQuery2 = "delete from USER_FRIENDS where USER_ID=? or FRIEND_ID=?";
-        jdbcTemplate.update(sglQuery2, id, id);
-    }
-
-    @Override
     public void addUserFiends(int id, int friendId) {
         String sglQuery1 = "insert into USER_FRIENDS (USER_ID, FRIEND_ID, FRIENDSHIP_CONFIRMED) values (?, ?, ?)";
         String sglQuery2 = "update USER_FRIENDS set FRIENDSHIP_CONFIRMED=? " +
@@ -128,6 +117,7 @@ public class UserDbStorage implements UserStorage {
         } else {
             jdbcTemplate.update(sglQuery2, true, id, friendId);
         }
+        eventStorage.addFriend(id, ADD, friendId);
         log.info("Пользователи подружились");
     }
 
@@ -146,6 +136,7 @@ public class UserDbStorage implements UserStorage {
         }
         final String sqlQuery = "delete from USER_FRIENDS where USER_ID=? and FRIEND_ID=?";
         jdbcTemplate.update(sqlQuery, id, friendId);
+        eventStorage.addFriend(id,REMOVE, friendId);
     }
 
     //вернуть всех друзей пользователя
@@ -194,5 +185,26 @@ public class UserDbStorage implements UserStorage {
                 rs.getString("USER_NAME"),
                 rs.getDate("BIRTHDAY").toLocalDate()
         );
+    }
+
+    //удаление пользователя
+    @Override
+    public void removeUser(int id) {
+        final String checkQuery = "select * from USERS where USER_ID=?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, id);
+        if (!userRows.next()) {
+            log.info("Пользователь не найден");
+            throw new UserNotFoundException(String.format(
+                    "Пользователь %s не найден", id));
+        }
+        // удаление пользователя из списка друзей
+        String sglQuery2 = "delete from USER_FRIENDS where USER_ID=? or FRIEND_ID=?";
+        jdbcTemplate.update(sglQuery2, id, id);
+        // удаление пользователя из списка USER_LIKED_FILM
+        String sglQuery3 = "delete from USER_LIKED_FILM where USER_ID=?";
+        jdbcTemplate.update(sglQuery3, id);
+        //удаление пользователя
+        String sglQuery = "delete from USERS where USER_ID=?";
+        jdbcTemplate.update(sglQuery, id);
     }
 }

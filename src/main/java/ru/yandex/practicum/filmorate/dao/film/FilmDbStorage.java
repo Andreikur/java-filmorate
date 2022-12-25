@@ -6,7 +6,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.event.EventStorage;
 import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.model.EventEnum.OperationType;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -20,9 +22,11 @@ import java.util.List;
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final EventStorage eventStorage;
 
-    public FilmDbStorage(JdbcTemplate jdbcTemplate) {
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, EventStorage eventStorage) {
         this.jdbcTemplate = jdbcTemplate;
+        this.eventStorage = eventStorage;
     }
 
     @Override
@@ -119,36 +123,15 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public void removeFilm(int id) {
-        final String checkQuery = "select * from FILMS where FILM_ID=?";
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(checkQuery, id);
-        if (!filmRows.next()) {
-            log.info("Фильм не найден");
-            throw new FilmNotFoundException(String.format(
-                    "Фильм %s не найден", id));
-        }
-        // удаление фильма из лайков
-        String sglQuery2 = "delete from USER_LIKED_FILM where FILM_ID=?";
-        jdbcTemplate.update(sglQuery2, id);
-        // удаление фильма из таблици FILM_GENRE
-        String sglQuery3 = "delete from FILM_GENRE where FILM_ID=?";
-        jdbcTemplate.update(sglQuery3, id);
-        // удаление фильма из таблици FILM_MPA
-        String sglQuery4 = "delete from FILM_MPA where FILM_ID=?";
-        jdbcTemplate.update(sglQuery4, id);
-        //удаление фильма
-        String sglQuery = "delete from FILMS where FILM_ID=?";
-        jdbcTemplate.update(sglQuery, id);
-    }
-
     public List<Film> getListOfPopularFilms(int count) {
 
         final String sqlQuery = "select * from FILMS " +
                 "left join USER_LIKED_FILM ULF ON FILMS.FILM_ID = ULF.FILM_ID " +
-                "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM ) " +
+                "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID " +
                 "order by COUNT(ULF.FILM_ID) " +
                 "DESC LIMIT ?";
         return jdbcTemplate.query(sqlQuery, this::makeFilm, count);
+
     }
 
     public void addLike(int filmId, int userId) {
@@ -168,6 +151,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         final String sqlQuery = "insert into USER_LIKED_FILM (FILM_ID, USER_ID) VALUES (?, ?)";
         jdbcTemplate.update(sqlQuery, filmId, userId);
+        eventStorage.addLike(userId, OperationType.ADD,filmId);
     }
 
     public void removeLike(int filmId, int userId) {
@@ -187,6 +171,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         final String sqlQuery = "delete from USER_LIKED_FILM where FILM_ID=? and USER_ID=?";
         jdbcTemplate.update(sqlQuery, filmId, userId);
+        eventStorage.addLike(userId, OperationType.REMOVE,filmId);
     }
 
     public List<Mpa> getAllMpa() {
@@ -282,5 +267,28 @@ public class FilmDbStorage implements FilmStorage {
                 "left join FILM_GENRE FG on GENRE.GENRE_ID = FG.GENRE_ID " +
                 "where FG.FILM_ID = ?";
         return jdbcTemplate.query(genresSqlQuery, this::makeGenre, id);
+    }
+
+    @Override
+    public void removeFilm(int id) {
+        final String checkQuery = "select * from FILMS where FILM_ID=?";
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(checkQuery, id);
+        if (!filmRows.next()) {
+            log.info("Фильм не найден");
+            throw new FilmNotFoundException(String.format(
+                    "Фильм %s не найден", id));
+        }
+        // удаление фильма из лайков
+        String sglQuery2 = "delete from USER_LIKED_FILM where FILM_ID=?";
+        jdbcTemplate.update(sglQuery2, id);
+        // удаление фильма из таблици FILM_GENRE
+        String sglQuery3 = "delete from FILM_GENRE where FILM_ID=?";
+        jdbcTemplate.update(sglQuery3, id);
+        // удаление фильма из таблици FILM_MPA
+        String sglQuery4 = "delete from FILM_MPA where FILM_ID=?";
+        jdbcTemplate.update(sglQuery4, id);
+        //удаление фильма
+        String sglQuery = "delete from FILMS where FILM_ID=?";
+        jdbcTemplate.update(sglQuery, id);
     }
 }
