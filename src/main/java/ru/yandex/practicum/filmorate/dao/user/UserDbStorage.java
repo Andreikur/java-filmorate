@@ -221,7 +221,7 @@ public class UserDbStorage implements UserStorage {
         } else {
             int userId = userIdList.get(0);
             //Сравнение предпочтений
-            FilmDbStorage filmDbStorage = new FilmDbStorage(jdbcTemplate);
+            FilmDbStorage filmDbStorage = new FilmDbStorage(jdbcTemplate, eventStorage);
             final String FilmsSqlQuery1 = "select FILM_ID " +
                     "from USER_LIKED_FILM " +
                     "where USER_ID=?";

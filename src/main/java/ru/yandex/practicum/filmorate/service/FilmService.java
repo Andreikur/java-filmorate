@@ -28,9 +28,7 @@ public class FilmService {
     }
 
     //возрат списка первых по количеству лайков N фильмов
-    public List<Film> getListOfPopularFilms(int count) {
 
-            return filmStorage.getListOfPopularFilms(count);
     public List<Film> getListOfPopularFilms(int count, int genreId, int year) {
         return filmStorage.getListOfPopularFilms(count, genreId, year);
     }
