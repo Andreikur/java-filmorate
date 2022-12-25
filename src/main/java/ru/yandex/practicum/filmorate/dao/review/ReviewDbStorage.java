@@ -87,7 +87,23 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public Review addReview(Review review) throws UserNotFoundException, FilmNotFoundException{
 
-        try {
+        final String checkUserQuery = "select * from USERS where USER_ID=?";
+        SqlRowSet userRows1 = jdbcTemplate.queryForRowSet(checkUserQuery, review.getUserId());
+        if (!userRows1.next()) {
+            log.info("Пользователь не найден");
+            throw new UserNotFoundException(String.format(
+                    "Пользователь %s не найден", review.getUserId()));
+        }
+
+        final String checkFilmQuery = "select * from FILMS where FILM_ID=?";
+        SqlRowSet userRows2 = jdbcTemplate.queryForRowSet(checkFilmQuery, review.getFilmId());
+        if (!userRows2.next()) {
+            log.info("Фильм не найден");
+            throw new FilmNotFoundException(String.format(
+                    "Фильм  %s не найден", review.getFilmId()));
+        }
+
+        //try {
             String sqlQuery = "INSERT INTO reviews (content, is_positive, user_id, film_id) " +
                     "VALUES (?, ?, ?, ?)";
 
@@ -104,7 +120,7 @@ public class ReviewDbStorage implements ReviewStorage {
             review.setReviewId(keyHolder.getKey().intValue());
             review.setUseful(0);
 
-        } catch (DataIntegrityViolationException e) {
+        /*} catch (DataIntegrityViolationException e) {
             //при неудачной попытке вставки счетчик автоинкремента все равно увеличивается на 1
             //костыль - чтобы пройти тесты здесь нужно его уменьшать на 1
             SqlRowSet rs = jdbcTemplate.queryForRowSet("SELECT MAX(review_id) as max_value FROM reviews");
@@ -123,7 +139,7 @@ public class ReviewDbStorage implements ReviewStorage {
                 log.info(message);
                 throw new FilmNotFoundException(message);
             }
-        }
+        }*/
 
         log.info("Отзыв добавлен: " + review.toString());
         return review;

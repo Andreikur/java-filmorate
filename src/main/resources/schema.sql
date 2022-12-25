@@ -59,7 +59,7 @@ create table  IF NOT EXISTS USER_LIKED_FILM
         foreign key (USER_ID) references USERS
 );
 
-create table FILM_MPA
+create table IF NOT EXISTS FILM_MPA
 (
     FILM_ID INTEGER,
     MPA_ID  INTEGER,
@@ -69,7 +69,7 @@ create table FILM_MPA
         foreign key (MPA_ID) references MPA
 );
 
-create table FILM_GENRE
+create table IF NOT EXISTS FILM_GENRE
 (
     FILM_ID  INTEGER,
     GENRE_ID INTEGER,
