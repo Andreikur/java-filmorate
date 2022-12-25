@@ -4,10 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.EventEnum.EventType;
 import ru.yandex.practicum.filmorate.model.EventEnum.OperationType;
+import lombok.extern.slf4j.Slf4j;
 
 
 import java.sql.PreparedStatement;
@@ -20,6 +23,7 @@ import static ru.yandex.practicum.filmorate.model.EventEnum.EventType.*;
 
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class EventDbStorageImpl implements EventStorage {
     private final JdbcTemplate jdbcTemplate;
@@ -36,6 +40,15 @@ public class EventDbStorageImpl implements EventStorage {
     }
     @Override
     public Event addReview(int userId, OperationType operation, int reviewId) {
+
+        final String checkQuery = "select * from USERS where USER_ID=?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, userId);
+        if (!userRows.next()) {
+            log.info("Пользователь не найден");
+            throw new UserNotFoundException(String.format(
+                    "Пользователь %s не найден", userId));
+        }
+
         return add(Event.builder()
                 .timestamp(new Timestamp(System.currentTimeMillis()).getTime())
                 .userId(userId)
@@ -73,6 +86,15 @@ public class EventDbStorageImpl implements EventStorage {
     }
     @Override
     public List<Event> get(int userId) {
+        ///////////////////////////////////
+        final String checkQuery = "select * from USERS where USER_ID=?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, userId);
+        if (!userRows.next()) {
+            log.info("Пользователь не найден");
+            throw new UserNotFoundException(String.format(
+                    "Пользователь %s не найден", userId));
+        }
+        //////////////////////////////////////////////
         final String sql = "SELECT * FROM EVENTS WHERE user_id = ? ORDER BY event_time ASC";
         return jdbcTemplate.query(sql, this::mapRowToFeed, userId);
     }

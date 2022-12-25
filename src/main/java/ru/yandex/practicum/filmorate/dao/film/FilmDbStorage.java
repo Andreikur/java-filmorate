@@ -123,6 +123,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         log.info("Фильм обновлен");
         film = getFilm(film.getId());
+
         return film;
     }
 
