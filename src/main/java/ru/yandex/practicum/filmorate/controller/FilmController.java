@@ -6,9 +6,12 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.SearchService;
 
 import javax.validation.Valid;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @RequestMapping(value = "/films")
@@ -16,6 +19,7 @@ import java.util.List;
 public class FilmController {
 
     private final FilmService filmService;
+    private final SearchService searchService;
 
     //Добавляем фильм
     @PostMapping
@@ -61,12 +65,31 @@ public class FilmController {
 
     //возрат списка первых по количеству лайков N фильмов
     @GetMapping("/popular")
-    //public List<Film> getListOfPopularFilms(@RequestParam(required = false) Integer count, Integer genreId, String year) {
-    public List<Film> getListOfPopularFilms(@RequestParam(required = false) Integer count) {
-
-            if (count == null) {
-            count = 10;
+    public List<Film> getListOfPopularFilms(@RequestParam(required = false, value = "count", defaultValue = "10")
+                                                Integer count, Integer genreId, Integer year) {
+        if (genreId == null) {
+            genreId = 0;
         }
-        return filmService.getListOfPopularFilms(count);
+        if (year == null) {
+            year = 0;
+        }
+        return filmService.getListOfPopularFilms(count, genreId, year);
+    }
+
+    @GetMapping("/common")
+    public List<Film> getListOfPopularFilms(@RequestParam int userId, @RequestParam int friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
+
+    //возрат списка фильмов режиссера, отсортированных по количеству лайков или году выпуска
+    @GetMapping("/director/{directorId}")
+    public List<Film> getDirectorFilmList(@PathVariable int directorId, @RequestParam(required = false) String sortBy) {
+        return filmService.getDirectorFilmList(directorId, sortBy);
+    }
+
+    //поиск фильмов по названию (name) или описанию (description)
+    @GetMapping({"/search"})
+    public Collection<Film> filmSearch(@RequestParam String query, @RequestParam Set<String> by) {
+        return searchService.filmSearch(query, by);
     }
 }

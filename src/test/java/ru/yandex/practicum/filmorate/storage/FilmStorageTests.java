@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage;
+/*package ru.yandex.practicum.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.assertj.core.api.Assertions;
@@ -122,4 +122,4 @@ public class FilmStorageTests {
         assertThat(filmDbStorage.getListOfPopularFilms(film.getId())).isNotNull();
         assertThat(filmDbStorage.getListOfPopularFilms(film.getId()).size() == 1);
     }
-}
+}*/

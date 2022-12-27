@@ -1,4 +1,3 @@
-
 create table IF NOT EXISTS GENRE
 (
     GENRE_ID INTEGER not null
@@ -59,7 +58,7 @@ create table  IF NOT EXISTS USER_LIKED_FILM
         foreign key (USER_ID) references USERS
 );
 
-create table FILM_MPA
+create table IF NOT EXISTS FILM_MPA
 (
     FILM_ID INTEGER,
     MPA_ID  INTEGER,
@@ -69,7 +68,7 @@ create table FILM_MPA
         foreign key (MPA_ID) references MPA
 );
 
-create table FILM_GENRE
+create table IF NOT EXISTS FILM_GENRE
 (
     FILM_ID  INTEGER,
     GENRE_ID INTEGER,
@@ -114,3 +113,21 @@ CREATE TABLE IF NOT EXISTS events
     CONSTRAINT constr_type CHECK (event_type IN ('LIKE','REVIEW','FRIEND')),
     CONSTRAINT constr_operation CHECK (operation IN ('REMOVE','ADD','UPDATE'))
 );
+create table IF NOT EXISTS DIRECTORS
+(
+    DIRECTOR_ID         INTEGER auto_increment
+        primary key
+        unique,
+    DIRECTOR_NAME       CHARACTER VARYING(20) not null
+);
+
+create table IF NOT EXISTS FILM_DIRECTORS
+(
+    FILM_ID     INTEGER,
+    DIRECTOR_ID INTEGER,
+    constraint FILM_DIRECTORS_DIRECTORS_DIRECTOR_ID_FK
+        foreign key (DIRECTOR_ID) references DIRECTORS,
+    constraint FILM_DIRECTORS_FILMS_FILM_ID_FK
+        foreign key (FILM_ID) references FILMS
+);
+

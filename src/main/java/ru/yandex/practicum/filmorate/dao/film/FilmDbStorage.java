@@ -1,14 +1,20 @@
 package ru.yandex.practicum.filmorate.dao.film;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.event.EventStorage;
+import ru.yandex.practicum.filmorate.constants.DBStorageConsts;
+import ru.yandex.practicum.filmorate.dao.director.DirectorDbStorage;
+import ru.yandex.practicum.filmorate.enums.FilmSearchOptions;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.EventEnum.OperationType;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -16,18 +22,19 @@ import ru.yandex.practicum.filmorate.validations.Validations;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
+@Qualifier(DBStorageConsts.QUALIFIER)
+@RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final EventStorage eventStorage;
-
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, EventStorage eventStorage) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.eventStorage = eventStorage;
-    }
 
     @Override
     public Film addFilm(Film film) throws ValidationException {
@@ -59,8 +66,17 @@ public class FilmDbStorage implements FilmStorage {
                 jdbcTemplate.update(genresSqlQuery, film.getId(), genre.getId());
             }
         }
+
+        final String directorSqlQuery = "insert into FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) VALUES (?, ?)";
+        if (film.getDirectors() != null) {
+            for (Director director : film.getDirectors()) {
+                jdbcTemplate.update(directorSqlQuery, film.getId(), director.getId());
+            }
+        }
+
         film.setMpa(findMpa(film.getId()));
         film.setGenres(findGenres(film.getId()));
+        film.setDirectors(findDirector(film.getId()));
         return film;
     }
 
@@ -85,13 +101,23 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sglQueryGenreRemove, film.getId());
 
         final String sglQueryGenre = "insert into FILM_GENRE (FILM_ID, GENRE_ID) values ( ?, ?)";
-        final String checkQueryDuplicate = "select * from FILM_GENRE where FILM_ID=? and GENRE_ID=?";
+        final String checkQueryDuplicateGenre = "select * from FILM_GENRE where FILM_ID=? and GENRE_ID=?";
         if (film.getGenres() != null) {
             for (Genre genre : film.getGenres()) {
-                SqlRowSet genreRowsDuplicate = jdbcTemplate.queryForRowSet(checkQueryDuplicate, film.getId(), genre.getId());
-                if (!genreRowsDuplicate.next()) {
+                SqlRowSet genreRowsDuplicateGenre = jdbcTemplate.queryForRowSet(checkQueryDuplicateGenre, film.getId(), genre.getId());
+                if (!genreRowsDuplicateGenre.next()) {
                     jdbcTemplate.update(sglQueryGenre, film.getId(), genre.getId());
                 }
+            }
+        }
+
+        final String sglQueryRemoveDirector = "delete from FILM_DIRECTORS where FILM_ID=?";
+        jdbcTemplate.update(sglQueryRemoveDirector, film.getId());
+
+        final String sglQueryDirector = "insert into FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) values ( ?, ?)";
+        if (film.getDirectors() != null) {
+            for (Director director : film.getDirectors()) {
+                jdbcTemplate.update(sglQueryDirector, film.getId(), director.getId());
             }
         }
         log.info("Фильм обновлен");
@@ -122,16 +148,43 @@ public class FilmDbStorage implements FilmStorage {
         return films.get(0);
     }
 
-    @Override
-    public List<Film> getListOfPopularFilms(int count) {
-
-        final String sqlQuery = "select * from FILMS " +
-                "left join USER_LIKED_FILM ULF ON FILMS.FILM_ID = ULF.FILM_ID " +
-                "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID " +
-                "order by COUNT(ULF.FILM_ID) " +
-                "DESC LIMIT ?";
-        return jdbcTemplate.query(sqlQuery, this::makeFilm, count);
-
+    public List<Film> getListOfPopularFilms(int count, int genreId, int year) {
+        List<Film> filmList;
+        if (genreId == 0 && year == 0) {
+            final String sqlQuery = "select * from FILMS " +
+                    "left join USER_LIKED_FILM ULF ON FILMS.FILM_ID = ULF.FILM_ID " +
+                    "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID " +
+                    "order by COUNT(ULF.FILM_ID) DESC " +
+                    "LIMIT ?";
+            filmList = jdbcTemplate.query(sqlQuery, this::makeFilm, count);
+        } else if (year == 0) {
+            final String sqlQuery = "select * from FILMS " +
+                    "left join USER_LIKED_FILM ULF on FILMS.FILM_ID = ULF.FILM_ID " +
+                    "left join FILM_GENRE FG on FILMS.FILM_ID = FG.FILM_ID " +
+                    "where FG.GENRE_ID=?" +
+                    "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM )  " +
+                    "order by COUNT(ULF.FILM_ID) DESC " +
+                    "LIMIT ?";
+            filmList = jdbcTemplate.query(sqlQuery, this::makeFilm, genreId, count);
+        } else if (genreId == 0) {
+            final String sqlQuery = "select * from FILMS " +
+                    "left join USER_LIKED_FILM ULF on FILMS.FILM_ID = ULF.FILM_ID " +
+                    "where YEAR(RELEASE_DATE) = ? " +
+                    "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM ) " +
+                    "order by COUNT(ULF.FILM_ID) DESC " +
+                    "LIMIT ?";
+            filmList = jdbcTemplate.query(sqlQuery, this::makeFilm, year, count);
+        } else {
+            final String sqlQuery = "select * from FILMS " +
+                    "left join USER_LIKED_FILM ULF on FILMS.FILM_ID = ULF.FILM_ID " +
+                    "left join FILM_GENRE FG on FILMS.FILM_ID = FG.FILM_ID " +
+                    "where YEAR(RELEASE_DATE) = ? and FG.GENRE_ID=?" +
+                    "group by FILMS.FILM_ID, ULF.FILM_ID, ULF.USER_ID IN (SELECT ULF.FILM_ID  FROM USER_LIKED_FILM )  " +
+                    "order by COUNT(ULF.FILM_ID) DESC " +
+                    "LIMIT ?";
+            filmList = jdbcTemplate.query(sqlQuery, this::makeFilm, year, genreId, count);
+        }
+        return filmList;
     }
 
     public void addLike(int filmId, int userId) {
@@ -151,7 +204,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         final String sqlQuery = "insert into USER_LIKED_FILM (FILM_ID, USER_ID) VALUES (?, ?)";
         jdbcTemplate.update(sqlQuery, filmId, userId);
-        eventStorage.addLike(userId, OperationType.ADD,filmId);
+        eventStorage.addLike(userId, OperationType.ADD, filmId);
     }
 
     public void removeLike(int filmId, int userId) {
@@ -171,7 +224,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         final String sqlQuery = "delete from USER_LIKED_FILM where FILM_ID=? and USER_ID=?";
         jdbcTemplate.update(sqlQuery, filmId, userId);
-        eventStorage.addLike(userId, OperationType.REMOVE,filmId);
+        eventStorage.addLike(userId, OperationType.REMOVE, filmId);
     }
 
     public List<Mpa> getAllMpa() {
@@ -238,6 +291,13 @@ public class FilmDbStorage implements FilmStorage {
         List<Genre> genreList = jdbcTemplate.query(sqlQueryGenre, this::makeGenre, film.getId());
         film.setGenres(genreList);
 
+        final String sqlQueryDirector = "select * " +
+                "from DIRECTORS " +
+                "left join FILM_DIRECTORS as FD on DIRECTORS.DIRECTOR_ID= FD.DIRECTOR_ID " +
+                "where FD.FILM_ID = ?";
+        List<Director> directorList = jdbcTemplate.query(sqlQueryDirector, this::makeDirector, film.getId());
+        film.setDirectors(directorList);
+
         return film;
     }
 
@@ -250,6 +310,12 @@ public class FilmDbStorage implements FilmStorage {
     private Genre makeGenre(ResultSet rs, int rowNum) throws SQLException {
         return new Genre(rs.getInt("GENRE_ID"),
                 rs.getString("GENRE_NAME")
+        );
+    }
+
+    private Director makeDirector(ResultSet rs, int rowNum) throws SQLException {
+        return new Director(rs.getInt("DIRECTOR_ID"),
+                rs.getString("DIRECTOR_NAME")
         );
     }
 
@@ -267,6 +333,14 @@ public class FilmDbStorage implements FilmStorage {
                 "left join FILM_GENRE FG on GENRE.GENRE_ID = FG.GENRE_ID " +
                 "where FG.FILM_ID = ?";
         return jdbcTemplate.query(genresSqlQuery, this::makeGenre, id);
+    }
+
+    private List<Director> findDirector(int id) {
+        final String genresSqlQuery = "select * " +
+                "from DIRECTORS " +
+                "left join FILM_DIRECTORS FD on DIRECTORS.DIRECTOR_ID = FD.DIRECTOR_ID " +
+                "where FD.FILM_ID = ?";
+        return jdbcTemplate.query(genresSqlQuery, this::makeDirector, id);
     }
 
     @Override
@@ -290,5 +364,107 @@ public class FilmDbStorage implements FilmStorage {
         //удаление фильма
         String sglQuery = "delete from FILMS where FILM_ID=?";
         jdbcTemplate.update(sglQuery, id);
+    }
+
+    /**
+     * возвращает список общих фильмов 2 пользователей с сортировкой по популярности
+     *
+     * @param userId   id первого пользователя
+     * @param friendId id друга первого пользователя
+     * @return список объектов типа Film
+     */
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String sqlQuery = "SELECT ulf1.film_id " +
+                "FROM user_liked_film AS ulf1 INNER JOIN user_liked_film AS ulf2 ON ulf1.film_id = ulf2.film_id " +
+                "WHERE ulf1.user_id = ? AND ulf2.user_id = ?";
+        List<Integer> commonFilmsIdList = jdbcTemplate.query(sqlQuery,
+                (rs, rowNum) -> rs.getInt("film_id"), userId, friendId);
+
+        if (!commonFilmsIdList.isEmpty()) {
+            sqlQuery = "SELECT f.*, COUNT(ulf.film_id) AS cnt " +
+                    "FROM films AS f LEFT JOIN user_liked_film AS ulf ON f.film_id = ulf.film_id " +
+                    "WHERE f.film_id IN (" + commonFilmsIdList.stream().map(String::valueOf).collect(Collectors.joining(",")) + ") " +
+                    "GROUP BY f.film_id " +
+                    "ORDER BY cnt DESC";
+
+            List<Film> commonFilmsList = jdbcTemplate.query(sqlQuery, this::makeFilm);
+
+            return commonFilmsList;
+        } else {
+            return List.of();
+        }
+    }
+
+    /**
+     * отдать все фильмы определенного режиссёра с сортировкой по дате или по популярности
+     *
+     * @param directorId id режиссера
+     * @param sortBy     сортировка если year то по дате, иначе по популярности (likes)
+     * @return список объектов типа Film
+     */
+    public List<Film> getDirectorFilmList(int directorId, String sortBy) {
+        //попробуем получить режиссера, если его не существует - будет выброшено DirectorNotFoundException
+        Director director = new DirectorDbStorage(jdbcTemplate).getDirector(directorId);
+
+        //получим список id всех фильмов режиссера
+        String sqlQuery = "SELECT film_id FROM film_directors WHERE director_id = ?";
+        List<Integer> filmIdList = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> rs.getInt("film_id"), directorId);
+
+        if (!filmIdList.isEmpty()) {
+            if (sortBy != null && sortBy.equals("year")) {
+                //сортировка по дате выпуска
+                sqlQuery = "SELECT * " +
+                        "FROM films " +
+                        "WHERE film_id IN (" + filmIdList.stream().map(String::valueOf).collect(Collectors.joining(",")) + ") " +
+                        "ORDER BY release_date";
+            } else {
+                //сортировка по убыванию популярности
+                sqlQuery = "SELECT f.*, COUNT(ulf.film_id) as cnt " +
+                        "FROM films AS f LEFT JOIN user_liked_film AS ulf on f.film_id = ulf.film_id " +
+                        "WHERE f.film_id IN (" + filmIdList.stream().map(String::valueOf).collect(Collectors.joining(",")) + ") " +
+                        "GROUP BY f.film_id " +
+                        "ORDER BY cnt DESC";
+            }
+
+            return jdbcTemplate.query(sqlQuery, this::makeFilm);
+        } else {
+            return List.of();
+        }
+    }
+
+    /**
+     * Возвращает коллекцию фильмов, отсортированную по названию фильмов
+     * при поисковом запросе с параметрами
+     *
+     * @param query  - подстрока, которую необходимо найти (без учёта регистра)
+     * @param params - ключи, задающие таблицы, в которых необходимо производить поиск
+     */
+    @Override
+    public Collection<Film> getSortedFilmFromSearch(String query, Set<FilmSearchOptions> params) {
+        String directorsJoin = "";
+        List<String> filterExpressions = new ArrayList<>();
+        for (FilmSearchOptions param : params) {
+            switch (param) {
+                case TITLE:
+                    filterExpressions.add("lower(f.FILM_NAME) like lower('%" + query + "%') ");
+                    break;
+                case DESCRIPTION:
+                    filterExpressions.add("lower(f.DESCRIPTION) like lower('%" + query + "%') ");
+                    break;
+                case DIRECTOR:
+                    filterExpressions.add("lower(ds.DIRECTOR_NAME) like lower('%" + query + "%') ");
+                    directorsJoin += "left outer join FILM_DIRECTORS d on f.FILM_ID = d.FILM_ID " +
+                            "left outer join DIRECTORS ds on d.DIRECTOR_ID = ds.DIRECTOR_ID ";
+                    break;
+            }
+        }
+
+        String sql = "select distinct f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, " +
+                "from FILMS f " +
+                directorsJoin + "where " + String.join(" or ", filterExpressions) + " " +
+                "group by f.FILM_ID " +
+                "order by f.FILM_NAME desc";
+        return jdbcTemplate.query(sql, this::makeFilm);
     }
 }
