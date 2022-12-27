@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.event.EventStorage;
 import ru.yandex.practicum.filmorate.dao.film.FilmStorage;
@@ -43,11 +42,12 @@ public class ReviewDbStorage implements ReviewStorage {
                 rs.getInt("user_id"),
                 rs.getInt("film_id"),
                 rs.getInt("useful")
-            );
+        );
     }
 
     /**
      * получить отзыв по его id
+     *
      * @param reviewId id отзыва
      * @return объект типа Review или null если не найдено
      */
@@ -59,22 +59,22 @@ public class ReviewDbStorage implements ReviewStorage {
         //если запись была получена
         if (!reviews.isEmpty()) {
             return reviews.get(0);
-        }
-        else {
+        } else {
             return null;
         }
     }
 
     /**
      * получить список отзывов к фильму, отсортированный по убыванию полезности
+     *
      * @param filmId id фильма, если указано 0 то выдать отзывы без фильтрации по film_id
-     * @param count количество отзывов, если указано 0 то выдать 10 отзывов
+     * @param count  количество отзывов, если указано 0 то выдать 10 отзывов
      * @return список объектов типа Review
      */
     @Override
     public List<Review> getReviewByFilmId(int filmId, int count) {
         String sqlQuery = "SELECT * FROM reviews "
-                + (filmId > 0 ? "WHERE film_id = " + filmId + " ": "")
+                + (filmId > 0 ? "WHERE film_id = " + filmId + " " : "")
                 + "ORDER BY useful DESC "
                 + "LIMIT " + (count > 0 ? count : 10);
         return jdbcTemplate.query(sqlQuery, this::makeReviewObject);
@@ -82,19 +82,20 @@ public class ReviewDbStorage implements ReviewStorage {
 
     /**
      * добавить новый отзыв
+     *
      * @param review объект Review с заполненными полями (кроме id)
      * @return объект Review с заполненными полями
      * @throws UserNotFoundException при нарушении ссылочной целостности БД (несуществующий user_id)
      * @throws FilmNotFoundException при нарушении ссылочной целостности БД (несуществующий film_id)
      */
     @Override
-    public Review addReview(Review review) throws UserNotFoundException, FilmNotFoundException{
+    public Review addReview(Review review) throws UserNotFoundException, FilmNotFoundException {
 
 
-        if(userDbStorage.getUser(review.getUserId())==null){
+        if (userDbStorage.getUser(review.getUserId()) == null) {
             throw new UserNotFoundException("not entity");
         }
-        if(filmStorage.getFilm(review.getFilmId())==null){
+        if (filmStorage.getFilm(review.getFilmId()) == null) {
             throw new FilmNotFoundException("not entity");
         }
         try {
@@ -144,10 +145,11 @@ public class ReviewDbStorage implements ReviewStorage {
 
     /**
      * изменить существующий отзыв
+     *
      * @param review объект Review с заполненными полями
      * @return обновленный объект Review
-     * @throws UserNotFoundException при нарушении ссылочной целостности БД (несуществующий user_id)
-     * @throws FilmNotFoundException при нарушении ссылочной целостности БД (несуществующий film_id)
+     * @throws UserNotFoundException   при нарушении ссылочной целостности БД (несуществующий user_id)
+     * @throws FilmNotFoundException   при нарушении ссылочной целостности БД (несуществующий film_id)
      * @throws ReviewNotFoundException если отзыв с указанным id не существует в БД
      */
     @Override
@@ -184,6 +186,7 @@ public class ReviewDbStorage implements ReviewStorage {
 
     /**
      * удалить отзыв
+     *
      * @param reviewId id записи данных отзыва в БД
      */
     @Override
@@ -199,8 +202,9 @@ public class ReviewDbStorage implements ReviewStorage {
 
     /**
      * пользователь ставит лайк отзыву
+     *
      * @param reviewId id отзыва в БД
-     * @param userId id пользователя
+     * @param userId   id пользователя
      */
     @Override
     public void likeReview(int reviewId, int userId) {
@@ -229,8 +233,9 @@ public class ReviewDbStorage implements ReviewStorage {
 
     /**
      * пользователь ставит дизлайк отзыву
+     *
      * @param reviewId id отзыва в БД
-     * @param userId id пользователя
+     * @param userId   id пользователя
      */
     @Override
     public void dislikeReview(int reviewId, int userId) {
@@ -259,8 +264,9 @@ public class ReviewDbStorage implements ReviewStorage {
 
     /**
      * пользователь удаляет свой предыдущий лайк/дизлайк
+     *
      * @param reviewId id записи данных отзыва в БД
-     * @param userId id пользователя
+     * @param userId   id пользователя
      */
     @Override
     public void deleteLike(int reviewId, int userId) {
@@ -273,6 +279,7 @@ public class ReviewDbStorage implements ReviewStorage {
 
     /**
      * пересчитать значение рейтинга отзыва после каких-либо изменений, записать его в БД
+     *
      * @param reviewId id отзыва
      * @return новое значение рейтинга
      */

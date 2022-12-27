@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dao.user;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -24,14 +25,10 @@ import static ru.yandex.practicum.filmorate.model.EventEnum.OperationType.REMOVE
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final EventStorage eventStorage;
-
-    public UserDbStorage(JdbcTemplate jdbcTemplate, EventStorage eventStorage) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.eventStorage = eventStorage;
-    }
 
     private SqlRowSet checkUser(int id) {
         final String checkQuery = "select * from USERS where USER_ID=?";
@@ -151,7 +148,7 @@ public class UserDbStorage implements UserStorage {
         }
         final String sqlQuery = "delete from USER_FRIENDS where USER_ID=? and FRIEND_ID=?";
         jdbcTemplate.update(sqlQuery, id, friendId);
-        eventStorage.addFriend(id,REMOVE, friendId);
+        eventStorage.addFriend(id, REMOVE, friendId);
     }
 
     /**
@@ -206,15 +203,12 @@ public class UserDbStorage implements UserStorage {
                     "Пользователь %s не найден", id));
         }
         List<Film> filmList = new ArrayList<>();
-        final String sqlQuery = "select ULF.USER_ID " +
-                "from USER_LIKED_FILM ULF " +
-                "where ulf.FILM_ID in " +
-                "                     (select FILM_ID " +
-                "                      from USER_LIKED_FILM ulf1 " +
-                "                      where USER_ID = ?) and ulf.USER_ID <> ?" +
-                "group by ULF.USER_ID " +
-                "order by COUNT(ULF.FILM_ID) desc " +
-                "limit 1";
+        final String sqlQuery = "SELECT ulf1.user_id " +
+                "FROM user_liked_film AS ulf1 INNER JOIN user_liked_film AS ulf2 ON ulf1.film_id = ulf2.film_id " +
+                "WHERE ulf2.user_id = ? AND ulf1.user_id <> ? " +
+                "GROUP BY ulf1.user_id " +
+                "ORDER BY COUNT(ulf1.film_id) DESC " +
+                "LIMIT 1";
         final List<Integer> userIdList = jdbcTemplate.query(sqlQuery, UserDbStorage::makeUserIdRecommendations, id, id);
         if (userIdList.isEmpty()) {
             log.info("Пересечений по лайкам нет");

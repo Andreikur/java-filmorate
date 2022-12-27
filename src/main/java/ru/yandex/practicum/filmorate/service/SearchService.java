@@ -25,9 +25,10 @@ public class SearchService {
     /**
      * Возвращает коллекцию фильмов,
      * при поисковом запросе с параметрами
+     *
      * @param query - подстрока, которую необходимо найти (без учёта регистра)
-     * @param by - ключи, задающие таблицы, в которых необходимо производить поиск
-     * */
+     * @param by    - ключи, задающие таблицы, в которых необходимо производить поиск
+     */
     public Collection<Film> filmSearch(String query, Set<String> by) {
         searchValidator.validateQuery(query);
         return filmStorage.getSortedFilmFromSearch(query, searchValidator.validateBy(by));

@@ -19,7 +19,7 @@ public class FilmService {
 
     //пользователь ставит лайк фильму
     public void addLike(int filmId, int userId) {
-       filmStorage.addLike(filmId, userId);
+        filmStorage.addLike(filmId, userId);
     }
 
     //удаление лайка
@@ -32,6 +32,7 @@ public class FilmService {
     public List<Film> getListOfPopularFilms(int count, int genreId, int year) {
         return filmStorage.getListOfPopularFilms(count, genreId, year);
     }
+
     public List<Film> getDirectorFilmList(int directorId, String sortBy) {
         return filmStorage.getDirectorFilmList(directorId, sortBy);
     }
@@ -39,7 +40,6 @@ public class FilmService {
     public FilmStorage getFilmStorage() {
         return filmStorage;
     }
-
 
     public List<Film> getCommonFilms(int userId, int friendId) {
         return filmStorage.getCommonFilms(userId, friendId);

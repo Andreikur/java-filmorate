@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dao.director;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -7,7 +8,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.DirectorNotFoundException;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,13 +18,10 @@ import java.util.List;
 
 @Component
 @Slf4j
-public class DirectorDbStorage implements  DirectorStorage{
+@RequiredArgsConstructor
+public class DirectorDbStorage implements DirectorStorage {
 
     private final JdbcTemplate jdbcTemplate;
-
-    public DirectorDbStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     public Director addDirector(Director director) {
         String sglQuery = "insert into DIRECTORS (DIRECTOR_NAME) values (?)";
@@ -55,13 +52,12 @@ public class DirectorDbStorage implements  DirectorStorage{
         return director;
     }
 
-
     public List<Director> getAllDirectors() {
         final String sqlQuery = "select * from DIRECTORS";
         return jdbcTemplate.query(sqlQuery, this::makeDirector);
     }
 
-    public Director getDirector(int id){
+    public Director getDirector(int id) {
         final String checkQuery = "select * from DIRECTORS where DIRECTOR_ID=?";
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, id);
         if (!userRows.next()) {
@@ -77,7 +73,7 @@ public class DirectorDbStorage implements  DirectorStorage{
         return directors.get(0);
     }
 
-    public void removeDirector(int id){
+    public void removeDirector(int id) {
         final String checkQuery = "select * from DIRECTORS where DIRECTOR_ID=?";
         SqlRowSet filmRows = jdbcTemplate.queryForRowSet(checkQuery, id);
         if (!filmRows.next()) {

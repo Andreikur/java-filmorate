@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ReviewNotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 
@@ -55,8 +53,7 @@ public class ReviewController {
         Review review = reviewService.getReviewById(reviewId);
         if (review == null) {
             throw new ReviewNotFoundException("Отзыв с id=" + reviewId + " не найден");
-        }
-        else {
+        } else {
             return review;
         }
     }
@@ -67,7 +64,7 @@ public class ReviewController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<Review> getReviewByFilmId(@RequestParam(defaultValue = "0") int filmId
-                                            , @RequestParam(defaultValue = "0") int count ) {
+            , @RequestParam(defaultValue = "0") int count) {
 
         return reviewService.getReviewByFilmId(filmId, count);
     }

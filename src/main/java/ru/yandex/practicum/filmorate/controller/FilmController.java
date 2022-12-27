@@ -65,10 +65,8 @@ public class FilmController {
 
     //возрат списка первых по количеству лайков N фильмов
     @GetMapping("/popular")
-    public List<Film> getListOfPopularFilms(@RequestParam(required = false) Integer count, Integer genreId, Integer year) {
-        if (count == null) {
-            count = 10;
-        }
+    public List<Film> getListOfPopularFilms(@RequestParam(required = false, value = "count", defaultValue = "10")
+                                                Integer count, Integer genreId, Integer year) {
         if (genreId == null) {
             genreId = 0;
         }
@@ -86,7 +84,6 @@ public class FilmController {
     //возрат списка фильмов режиссера, отсортированных по количеству лайков или году выпуска
     @GetMapping("/director/{directorId}")
     public List<Film> getDirectorFilmList(@PathVariable int directorId, @RequestParam(required = false) String sortBy) {
-
         return filmService.getDirectorFilmList(directorId, sortBy);
     }
 

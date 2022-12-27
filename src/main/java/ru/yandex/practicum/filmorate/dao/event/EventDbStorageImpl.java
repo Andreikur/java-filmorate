@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.model.EventEnum.EventType;
 import ru.yandex.practicum.filmorate.model.EventEnum.OperationType;
 import lombok.extern.slf4j.Slf4j;
 
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,7 +19,6 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import static ru.yandex.practicum.filmorate.model.EventEnum.EventType.*;
-
 
 @Component
 @Slf4j
@@ -86,7 +84,6 @@ public class EventDbStorageImpl implements EventStorage {
     }
     @Override
     public List<Event> get(int userId) {
-        ///////////////////////////////////
         final String checkQuery = "select * from USERS where USER_ID=?";
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(checkQuery, userId);
         if (!userRows.next()) {
@@ -94,7 +91,6 @@ public class EventDbStorageImpl implements EventStorage {
             throw new UserNotFoundException(String.format(
                     "Пользователь %s не найден", userId));
         }
-        //////////////////////////////////////////////
         final String sql = "SELECT * FROM EVENTS WHERE user_id = ? ORDER BY event_time ASC";
         return jdbcTemplate.query(sql, this::mapRowToFeed, userId);
     }

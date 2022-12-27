@@ -7,7 +7,9 @@ import java.util.List;
 
 public interface EventStorage {
     Event addLike(int user_id, OperationType operation, int film_id);
+
     Event addReview(int user_id, OperationType operation, int review_id);
+
     Event addFriend(int user_id, OperationType operation, int friend_id);
 
     Event add(Event feed);
